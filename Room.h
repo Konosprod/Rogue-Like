@@ -18,6 +18,8 @@ class Room : public sf::Drawable, public sf::Transformable
 
         void generateRoom();
         void generateStartRoom();
+        void generateHealRoom();
+        void generateEventRoom();
 
         int getX() {return m_x;};
         int getY() {return m_y;};
@@ -30,6 +32,7 @@ class Room : public sf::Drawable, public sf::Transformable
         void deleteTab();
         void createMob();
         void createChest();
+        void createHealer();
 
     private:
         bool* m_connexions;

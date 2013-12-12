@@ -1370,7 +1370,7 @@ void Map::createRooms()
 
                 if(m_tab[i][j] == HEAL_ROOM)
                 {
-                    m_rooms[i][j]->generateRoom();
+                    m_rooms[i][j]->generateHealRoom();
                 }
                 else if(m_tab[i][j] == START_ROOM)
                 {
@@ -1378,7 +1378,7 @@ void Map::createRooms()
                 }
                 else if(m_tab[i][j] == EVENT_ROOM)
                 {
-                    m_rooms[i][j]->generateRoom();
+                    m_rooms[i][j]->generateEventRoom();
                 }
                 else if(m_tab[i][j] == CHEST_ROOM)
                 {

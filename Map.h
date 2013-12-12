@@ -10,6 +10,7 @@
 #define CHEST_ROOM 4
 #define EVENT_ROOM 3
 #define START_ROOM 2
+#define END_ROOM 6
 
 typedef struct Point
 {

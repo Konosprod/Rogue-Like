@@ -23,6 +23,76 @@ void Room::createGround()
     }
 }
 
+void Room::generateEventRoom()
+{
+    m_x = rand()%5+12;
+    m_y = rand()%5+12;
+
+    m_tab = new char**[LAYER];
+
+    for(int i = 0; i < LAYER; i++)
+    {
+        m_tab[i] = new char*[m_y];
+
+        for(unsigned int j = 0; j < m_y; j++)
+        {
+            m_tab[i][j] = new char[m_x];
+        }
+    }
+
+    initTab();
+
+    createGround();
+    createWall();
+    createTP();
+
+    loadTileset();
+}
+
+void Room::generateHealRoom()
+{
+    m_x = rand()%5+12;
+    m_y = rand()%5+12;
+
+    m_tab = new char**[LAYER];
+
+    for(int i = 0; i < LAYER; i++)
+    {
+        m_tab[i] = new char*[m_y];
+
+        for(unsigned int j = 0; j < m_y; j++)
+        {
+            m_tab[i][j] = new char[m_x];
+        }
+    }
+
+    initTab();
+
+    createGround();
+    createWall();
+    createTP();
+    createHealer();
+
+    loadTileset();
+}
+
+void Room::createHealer()
+{
+    bool isPlaced = false;
+
+    while(!isPlaced)
+    {
+        int x = rand()%(m_x-4) + 2;
+        int y = rand()%(m_y-4) + 2;
+
+        if(m_tab[1][y][x] == 0)
+        {
+            m_tab[1][y][x] = 9;
+            isPlaced = true;
+        }
+    }
+}
+
 void Room::createWall()
 {
     for(unsigned int i = 0; i < m_x; i++)
