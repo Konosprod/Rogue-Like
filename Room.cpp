@@ -1,25 +1,22 @@
 #include "Room.h"
 
-
-Room::Room(bool connexions[], bool hasChest) : m_hasChest(hasChest)
-
+Room::Room(bool* connexions, bool hasChest, bool isHeal) :
+    m_connexions(connexions), m_hasChest(hasChest), m_isHeal(isHeal)
 {
-     for(int i = 0; i < 4; i++)
-    {
-        m_connexions[i] = connexions[i];
-    }
+
 }
 
 Room::~Room()
 {
     deleteTab();
+    delete [] m_connexions;
 }
 
 void Room::createGround()
 {
-    for(int i = 0; i < m_y; i++)
+    for(unsigned int i = 0; i < m_y; i++)
     {
-        for(int j = 0; j < m_x; j++)
+        for(unsigned int j = 0; j < m_x; j++)
         {
             m_tab[0][i][j] = 1;
         }
@@ -28,13 +25,13 @@ void Room::createGround()
 
 void Room::createWall()
 {
-    for(int i = 0; i < m_x; i++)
+    for(unsigned int i = 0; i < m_x; i++)
     {
         m_tab[1][0][i] = 2;
         m_tab[1][m_y-1][i] = 2;
     }
 
-    for(int i = 0; i < m_y; i++)
+    for(unsigned int i = 0; i < m_y; i++)
     {
         m_tab[1][i][0] = 2;
         m_tab[1][i][m_x-1] = 2;
@@ -82,9 +79,9 @@ void Room::initTab()
 {
     for(int i = 0; i < LAYER; i++)
     {
-        for(int j = 0; j < m_y; j++)
+        for(unsigned int j = 0; j < m_y; j++)
         {
-            for(int k = 0; k < m_x; k++)
+            for(unsigned int k = 0; k < m_x; k++)
             {
                 m_tab[i][j][k] = 0;
             }
@@ -96,7 +93,7 @@ void Room::deleteTab()
 {
     for(int i = 0; i < LAYER; i++)
     {
-        for(int j = 0; j < m_y; j++)
+        for(unsigned int j = 0; j < m_y; j++)
         {
             delete[] m_tab[i][j];
         }
@@ -105,6 +102,23 @@ void Room::deleteTab()
     }
 
     delete m_tab;
+}
+
+void Room::createChest()
+{
+    bool isPlaced = false;
+
+    while(!isPlaced)
+    {
+        int x = rand()%(m_x-4) + 2;
+        int y = rand()%(m_y-4) + 2;
+
+        if(m_tab[1][y][x] == 0)
+        {
+            m_tab[1][y][x] = 8;
+            isPlaced = true;
+        }
+    }
 }
 
 void Room::createMob()
@@ -123,23 +137,30 @@ void Room::createMob()
     }
 }
 
-void Room::createChest()
+void Room::generateStartRoom()
 {
-    bool isPlaced = false;
+    m_x = rand()%5+12;
+    m_y = rand()%5+12;
 
-    while(!isPlaced)
+    m_tab = new char**[LAYER];
+
+    for(int i = 0; i < LAYER; i++)
     {
-        int x = rand()%(m_x-4) + 2;
-        int y = rand()%(m_y-4) + 2;
+        m_tab[i] = new char*[m_y];
 
-        if(m_tab[1][y][x] == 0)
+        for(unsigned int j = 0; j < m_y; j++)
         {
-            m_tab[1][y][x] = 8;
-            isPlaced = true;
+            m_tab[i][j] = new char[m_x];
         }
-
     }
 
+    initTab();
+
+    createGround();
+    createWall();
+    createTP();
+
+    loadTileset();
 }
 
 void Room::generateRoom()
@@ -153,7 +174,7 @@ void Room::generateRoom()
     {
         m_tab[i] = new char*[m_y];
 
-        for(int j = 0; j < m_y; j++)
+        for(unsigned int j = 0; j < m_y; j++)
         {
             m_tab[i][j] = new char[m_x];
         }
@@ -166,7 +187,8 @@ void Room::generateRoom()
     createTP();
     createMob();
 
-    if (m_hasChest)
+
+    if(m_hasChest)
     {
         createChest();
     }
@@ -191,9 +213,9 @@ void Room::loadTileset()
 
     for(int i = 0; i < LAYER; i++)
     {
-        for(int j = 0; j < m_y; j++)
+        for(unsigned int j = 0; j < m_x; j++)
         {
-            for(int k = 0; k < m_x; k++)
+            for(unsigned int k = 0; k < m_y; k++)
             {
                 sf::Sprite r;
                 r.setTexture(m_tileset);
@@ -202,8 +224,8 @@ void Room::loadTileset()
                 rect.height = 32;
                 rect.width = 32;
 
-                rect.top = (m_tab[i][j][k] / (m_tileset.getSize().x / 32))*32;
-                rect.left = (m_tab[i][j][k] % (m_tileset.getSize().x / 32))*32;
+                rect.top = (m_tab[i][k][j] / (m_tileset.getSize().x / 32))*32;
+                rect.left = (m_tab[i][k][j] % (m_tileset.getSize().x / 32))*32;
 
                 r.setTextureRect(rect);
                 r.setPosition(k*TILE_HEIGHT, j*TILE_WIDTH);

@@ -3,8 +3,13 @@
 
 #include <vector>
 #include <SFML/Graphics.hpp>
+#include "Room.h"
 
 #define SIZE_MAX 20
+#define HEAL_ROOM 5
+#define CHEST_ROOM 4
+#define EVENT_ROOM 3
+#define START_ROOM 2
 
 typedef struct Point
 {
@@ -19,6 +24,8 @@ class Map : public sf::Drawable, public sf::Transformable
         Map();
         virtual ~Map();
         void generateMap();
+        void moveRoom(int x, int y);
+        void drawMapDebug();
 
     protected:
         void initTab(int** t);
@@ -38,10 +45,17 @@ class Map : public sf::Drawable, public sf::Transformable
         bool joinPack();
         Point findStart();
         int distanceRoom(Point a, Point b);
+        void getNbRoom();
+        void createRooms();
+        bool* dirRoomCo (int x, int y);
+        void setChest ();
+        void setHeal();
 
     private:
         int m_nbRoom;
         int** m_tab;
+        Room*** m_rooms;
+        Point m_currentPos;
 
         virtual void draw(sf::RenderTarget& t, sf::RenderStates s) const;
 };

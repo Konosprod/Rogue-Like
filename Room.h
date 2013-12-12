@@ -13,11 +13,12 @@
 class Room : public sf::Drawable, public sf::Transformable
 {
     public:
-
-        Room(bool connexions[], bool hasChest = false);
+        Room(bool connexions[], bool hasChest = false, bool isHeal = false);
         virtual ~Room();
 
         void generateRoom();
+        void generateStartRoom();
+
         int getX() {return m_x;};
         int getY() {return m_y;};
 
@@ -31,10 +32,11 @@ class Room : public sf::Drawable, public sf::Transformable
         void createChest();
 
     private:
-        bool m_connexions[4];
+        bool* m_connexions;
         unsigned int m_x;
         unsigned int m_y;
         bool m_hasChest;
+        bool m_isHeal;
         char*** m_tab;
 
         sf::Texture m_tileset;

@@ -7,6 +7,15 @@ Map::Map()
 
 Map::~Map()
 {
+    for(int i = 0; i < SIZE_MAX; i++)
+    {
+        for(int j = 0; j < SIZE_MAX; j++)
+        {
+            //m_rooms[i][j]->~Room();
+            delete[] m_rooms[i];
+        }
+    }
+    delete[] m_rooms;
     freeTab(m_tab);
 }
 
@@ -600,7 +609,7 @@ bool Map::setEvent()
         {
             if((m_tab[j][i] == 1) && (numberRoomCo(i, j, m_tab) == 1))
             {
-                m_tab[j][i] = 2;
+                m_tab[j][i] = START_ROOM;
                 y = j;
                 x = i;
                 trouve = true;
@@ -619,7 +628,7 @@ bool Map::setEvent()
                 if(((m_tab[j][i] == 1) && (numberRoomCo(i, j, m_tab) == 1)) &&
                     ((absValue(j-y) + absValue(i-x)) > k))
                 {
-                    m_tab[j][i] = 2;
+                    m_tab[j][i] = EVENT_ROOM;
                     trouve = true;
                 }
             }
@@ -634,7 +643,7 @@ bool Map::setEvent()
                     if(((m_tab[j][i] == 1) && (numberRoomCo(i, j, m_tab) == 2)) &&
                         ((absValue(j-y) + absValue(i-x)) > k))
                     {
-                        m_tab[j][i] = 2;
+                        m_tab[j][i] = EVENT_ROOM;
                         trouve = true;
                     }
                 }
@@ -1012,9 +1021,10 @@ void Map::generateMap()
 
     joinPack();
     setEvent();
+    setChest();
+    setHeal();
+    createRooms();
 }
-
-
 
 Point Map::findStart ()
 {
@@ -1023,10 +1033,10 @@ Point Map::findStart ()
     {
         for(int j=0; j< SIZE_MAX; j++)
         {
-            if(m_tab[j][i] == 2)
+            if(m_tab[j][i] == START_ROOM)
             {
-                res.x = j;
-                res.y = i;
+                res.x = i;
+                res.y = j;
             }
         }
     }
@@ -1034,7 +1044,394 @@ Point Map::findStart ()
     return res;
 }
 
+void Map::getNbRoom()
+{
+    for(int i = 0; i < SIZE_MAX; i++)
+    {
+        for(int j = 0; j < SIZE_MAX; j++)
+        {
+            if(m_tab[i][j] != 0)
+            {
+                m_nbRoom++;
+            }
+        }
+    }
+}
+
+void Map::setHeal ()
+{
+    bool place = false;
+    Point start = findStart();
+    Point p = {0,0};
+
+    while(!place)
+    {
+        p.x=rand()%(SIZE_MAX - 1);
+        p.y=rand()%(SIZE_MAX - 1);
+        if( (m_tab[p.y][p.x] == 1) && ((distanceRoom(p,start) > 2) &&
+                                       (distanceRoom(p,start)) < 6) )
+        {
+            m_tab[p.y][p.x] = HEAL_ROOM;
+            place = true;
+        }
+    }
+}
+
+void Map::setChest ()
+{
+    int chest = rand()%3;
+    int dis = SIZE_MAX;
+    int x=0;
+    int y=0;
+
+    bool trouve = false;
+
+    Point start = findStart();
+
+    std::vector<Point> pack;
+    std::vector<Point> aCheck;
+    std::vector<Point> temp;
+    Point p = {0,0};
+
+
+    int** check = new int*[SIZE_MAX];
+    for(int i=0; i<SIZE_MAX; i++)
+    {
+        check[i] = new int[SIZE_MAX];
+    }
+
+    initTab(check);
+    copyTab(m_tab, check);
+
+    for (int i=0; i<SIZE_MAX && !trouve; i++)
+    {
+        for (int j=0; j<SIZE_MAX && !trouve; j++)
+        {
+            if (check[j][i] == 1)
+            {
+                p.x = i;
+                p.y = j;
+                trouve = true;
+            }
+        }
+    }
+
+    aCheck = coordRoomCo(p.x,p.y,check);
+    aCheck.push_back(p);
+
+    while(!aCheck.empty())
+    {
+        y = aCheck[0].y;
+        x = aCheck[0].x;
+
+        p.x = x;
+        p.y = y;
+        pack.push_back(p);
+
+
+        temp = coordRoomCo(x,y,check);
+        check[y][x] = 0;
+        aCheck.erase(aCheck.begin(),aCheck.begin()+1);
+
+        while(!temp.empty())
+        {
+            p.y = temp.back().y;
+            p.x = temp.back().x;
+
+            aCheck.push_back(p);
+            check[temp.back().y][temp.back().x] = 0;
+            temp.pop_back();
+        }
+    }
+
+    while (chest > 0)
+    {
+        for(unsigned int i=0; i<pack.size() && chest > 0; i++)
+        {
+            if(distanceRoom(start, pack[i]) > dis)
+            {
+                m_tab[pack[i].y][pack[i].x] = CHEST_ROOM;
+                chest--;
+            }
+        }
+        dis--;
+    }
+}
+
+bool* Map::dirRoomCo (int x, int y)
+{
+    bool* res = new bool[4];
+
+    for(int i = 0; i < 4; i++)
+    {
+        res[i] = false;
+    }
+
+    if (isCorner(x,y))
+    {
+        if ((y == 0) && (x == 0))
+        {
+            if (m_tab[y][x+1] != 0)
+            {
+                res[1] = true;
+            }
+            if (m_tab[y+1][x] != 0)
+            {
+                res[2] = true;
+            }
+        }
+        else if ((y == 0) && (x == SIZE_MAX - 1))
+        {
+            if (m_tab[y][x-1] != 0)
+            {
+                res[3] = true;
+            }
+            if (m_tab[y+1][x] != 0)
+            {
+                res[2] = true;
+            }
+        }
+        else if ((y == SIZE_MAX - 1) && (x == 0))
+        {
+            if (m_tab[y-1][x] != 0)
+            {
+                res[0] = true;
+            }
+            if (m_tab[y][x+1] != 0)
+            {
+                res[1] = true;
+            }
+        }
+        else if ((y == SIZE_MAX - 1) && (x == SIZE_MAX - 1))
+        {
+            if (m_tab[y-1][x] != 0)
+            {
+                res[0] = true;
+            }
+            if (m_tab[y][x-1] != 0)
+            {
+                res[3] = true;
+            }
+        }
+    }
+    else if (isOnEdge(x,y))
+    {
+        if (y == 0)
+        {
+            if (m_tab[y][x-1] != 0)
+            {
+                res[3] = true;
+            }
+            if (m_tab[y][x+1] != 0)
+            {
+                res[1] = true;
+            }
+            if (m_tab[y+1][x] != 0)
+            {
+                res[2] = true;
+            }
+        }
+        else if (y == SIZE_MAX - 1)
+        {
+            if (m_tab[y][x-1] != 0)
+            {
+                res[3] = true;
+            }
+            if (m_tab[y][x+1] != 0)
+            {
+                res[1] = true;
+            }
+            if (m_tab[y-1][x] != 0)
+            {
+                res[0] = true;
+            }
+        }
+        else if (x == 0)
+        {
+            if (m_tab[y-1][x] != 0)
+            {
+                res[0] = true;
+            }
+            if (m_tab[y+1][x] != 0)
+            {
+                res[2] = true;
+            }
+            if (m_tab[y][x+1] != 0)
+            {
+                res[1] = true;
+            }
+        }
+        else // x == TAILLE_MAX - 1
+        {
+            if (m_tab[y-1][x] != 0)
+            {
+                res[0] = true;
+            }
+            if (m_tab[y+1][x] != 0)
+            {
+                res[2] = true;
+            }
+            if (m_tab[y][x-1] != 0)
+            {
+                res[3] = true;
+            }
+        }
+    }
+    else
+    {
+        if (m_tab[y-1][x] != 0)
+        {
+            res[0] = true;
+        }
+        if (m_tab[y+1][x] != 0)
+        {
+            res[2] = true;
+        }
+        if (m_tab[y][x-1] != 0)
+        {
+            res[3] = true;
+        }
+        if (m_tab[y][x+1] != 0)
+        {
+            res[1] = true;
+        }
+    }
+    return res;
+}
+
+void Map::moveRoom(int x, int y)
+{
+    if(x > 0)
+    {
+        if((m_currentPos.x+1) < SIZE_MAX)
+        {
+            if(m_tab[m_currentPos.y][m_currentPos.x+1] != 0)
+            {
+                m_currentPos.x++;
+            }
+        }
+    }
+    else if(x < 0)
+    {
+        if((m_currentPos.x-1) >= 0)
+        {
+            if(m_tab[m_currentPos.y][m_currentPos.x-1] != 0)
+            {
+                m_currentPos.x--;
+            }
+        }
+    }
+    else if(y > 0)
+    {
+        if((m_currentPos.y+1) < SIZE_MAX)
+        {
+            if(m_tab[m_currentPos.y+1][m_currentPos.x] != 0)
+            {
+                m_currentPos.y++;
+            }
+        }
+    }
+    else if(y < 0)
+    {
+        if((m_currentPos.y-1) >= 0)
+        {
+            if(m_tab[m_currentPos.y-1][m_currentPos.x] != 0)
+            {
+                m_currentPos.y--;
+            }
+        }
+    }
+}
+
+void Map::createRooms()
+{
+    m_rooms = new Room**[SIZE_MAX];
+
+    for(int i = 0; i < SIZE_MAX; i++)
+    {
+        m_rooms[i] = new Room*[SIZE_MAX];
+    }
+
+    for(int i = 0; i < SIZE_MAX; i++)
+    {
+        for(int j = 0; j < SIZE_MAX; j++)
+        {
+            m_rooms[i][j] = NULL;
+        }
+    }
+
+    for(int i = 0; i < SIZE_MAX; i++)
+    {
+        for(int j = 0; j < SIZE_MAX; j++)
+        {
+            if(m_tab[i][j] != 0)
+            {
+                m_rooms[i][j] = new Room(dirRoomCo(j, i), (m_tab[i][j] == CHEST_ROOM) ? true : false, (m_tab[i][j] == HEAL_ROOM) ? true : false);
+
+                if(m_tab[i][j] == HEAL_ROOM)
+                {
+                    m_rooms[i][j]->generateRoom();
+                }
+                else if(m_tab[i][j] == START_ROOM)
+                {
+                    m_rooms[i][j]->generateStartRoom();
+                }
+                else if(m_tab[i][j] == EVENT_ROOM)
+                {
+                    m_rooms[i][j]->generateRoom();
+                }
+                else if(m_tab[i][j] == CHEST_ROOM)
+                {
+                    m_rooms[i][j]->generateRoom();
+                }
+                else
+                {
+                    m_rooms[i][j]->generateRoom();
+                }
+            }
+        }
+    }
+
+    m_currentPos = findStart();
+}
+
+void Map::drawMapDebug()
+{
+   for (int i=0; i<SIZE_MAX; i++)
+    {
+        for (int j=0; j<SIZE_MAX; j++)
+        {
+            if(m_tab[j][i] == 1)
+            {
+                std::cout << "*";
+            }
+            else if (m_tab[j][i] == START_ROOM)
+            {
+                std::cout << "O";
+            }
+            else if (m_tab[j][i] == EVENT_ROOM)
+            {
+                std::cout << "X";
+            }
+            else if (m_tab[j][i] == CHEST_ROOM)
+            {
+                std::cout << "C";
+            }
+            else if (m_tab[j][i] == HEAL_ROOM)
+            {
+                std::cout << "H";
+            }
+            else
+            {
+                std::cout << " ";
+            }
+        }
+        std::cout << std::endl;
+    }
+}
+
 void Map::draw(sf::RenderTarget& t, sf::RenderStates s) const
 {
-
+    t.draw(*m_rooms[m_currentPos.y][m_currentPos.x]);
 }
+
