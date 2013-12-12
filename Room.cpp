@@ -8,8 +8,6 @@ Room::Room(bool connexions[], bool hasChest) : m_hasChest(hasChest)
     {
         m_connexions[i] = connexions[i];
     }
-
-    m_hasChest = hasChest;
 }
 
 Room::~Room()
