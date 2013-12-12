@@ -13,7 +13,7 @@
 class Room : public sf::Drawable, public sf::Transformable
 {
     public:
-        Room(bool connexions[]);
+        Room(bool connexions[], bool hasChest = false);
         virtual ~Room();
 
         void generateRoom();
@@ -32,6 +32,7 @@ class Room : public sf::Drawable, public sf::Transformable
         bool m_connexions[4];
         unsigned int m_x;
         unsigned int m_y;
+        bool m_hasChest;
         char*** m_tab;
 
         sf::Texture m_tileset;

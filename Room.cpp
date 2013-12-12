@@ -1,6 +1,6 @@
 #include "Room.h"
 
-Room::Room(bool connexions[])
+Room::Room(bool connexions[], bool hasChest) : m_hasChest(hasChest)
 {
     for(int i = 0; i < 4; i++)
     {

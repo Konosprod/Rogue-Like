@@ -10,6 +10,14 @@ Map::~Map()
     freeTab(m_tab);
 }
 
+int absValue (int n)
+{
+    if (n > 0)
+        return n;
+    else
+        return -n;
+}
+
 void Map::copyTab(int** src, int** dest)
 {
     for (int i=0; i<SIZE_MAX; i++)
@@ -48,7 +56,7 @@ bool Map::isCorner (int y, int x)
     return res;
 }
 
-bool Map::isEmpty ()
+bool Map::isEmpty (int** t)
 {
     bool empty = true;
 
@@ -56,7 +64,7 @@ bool Map::isEmpty ()
     {
         for (int j=0; j<SIZE_MAX; j++)
         {
-            if (m_tab[j][i] == 1)
+            if (t[j][i] == 1)
             {
                 empty = false;
             }
@@ -79,7 +87,7 @@ bool Map::isOnEdge (int y, int x)
     return res;
 }
 
-int Map::numberRoomCo (int x, int y)
+int Map::numberRoomCo (int x, int y, int** grille)
 {
     int res = 0;
     if (isCorner(x,y))
@@ -88,16 +96,16 @@ int Map::numberRoomCo (int x, int y)
         {
             if(x == 0)
             {
-                if (m_tab[y+1][x] == 1)
+                if (grille[y+1][x] == 1)
                     res++;
-                if (m_tab[y][x+1] == 1)
+                if (grille[y][x+1] == 1)
                     res++;
             }
             else if(x == SIZE_MAX - 1)
             {
-                if (m_tab[y+1][x] == 1)
+                if (grille[y+1][x] == 1)
                     res++;
-                if (m_tab[y][x-1] == 1)
+                if (grille[y][x-1] == 1)
                     res++;
             }
         }
@@ -105,16 +113,16 @@ int Map::numberRoomCo (int x, int y)
         {
             if(x == 0)
             {
-                if (m_tab[y-1][x] == 1)
+                if (grille[y-1][x] == 1)
                     res++;
-                if (m_tab[y][x+1] == 1)
+                if (grille[y][x+1] == 1)
                     res++;
             }
             else if(x == SIZE_MAX -1)
             {
-                if (m_tab[y-1][x] == 1)
+                if (grille[y-1][x] == 1)
                     res++;
-                if (m_tab[y][x-1] == 1)
+                if (grille[y][x-1] == 1)
                     res++;
             }
         }
@@ -123,71 +131,71 @@ int Map::numberRoomCo (int x, int y)
     {
         if (y == 0)
         {
-            if (m_tab[y][x-1] == 1)
+            if (grille[y][x-1] == 1)
                 res++;
-            if (m_tab[y][x+1] == 1)
+            if (grille[y][x+1] == 1)
                 res++;
-            if (m_tab[y+1][x] == 1)
+            if (grille[y+1][x] == 1)
                 res++;
         }
         else if (y == SIZE_MAX - 1)
         {
-            if (m_tab[y][x-1] == 1)
+            if (grille[y][x-1] == 1)
                 res++;
-            if (m_tab[y][x+1] == 1)
+            if (grille[y][x+1] == 1)
                 res++;
-            if (m_tab[y-1][x] == 1)
+            if (grille[y-1][x] == 1)
                 res++;
         }
         else if (x == 0)
         {
-            if (m_tab[y-1][x] == 1)
+            if (grille[y-1][x] == 1)
                 res++;
-            if (m_tab[y+1][x] == 1)
+            if (grille[y+1][x] == 1)
                 res++;
-            if (m_tab[y][x+1] == 1)
+            if (grille[y][x+1] == 1)
                 res++;
         }
         else
         {
-            if (m_tab[y-1][x] == 1)
+            if (grille[y-1][x] == 1)
                 res++;
-            if (m_tab[y+1][x] == 1)
+            if (grille[y+1][x] == 1)
                 res++;
-            if (m_tab[y][x-1] == 1)
+            if (grille[y][x-1] == 1)
                 res++;
         }
     }
     else
     {
-        if (m_tab[y-1][x] == 1)
+        if (grille[y-1][x] == 1)
             res++;
-        if (m_tab[y+1][x] == 1)
+        if (grille[y+1][x] == 1)
             res++;
-        if (m_tab[y][x-1] == 1)
+        if (grille[y][x-1] == 1)
             res++;
-        if (m_tab[y][x+1] == 1)
+        if (grille[y][x+1] == 1)
             res++;
     }
     return res;
-}
+} // numberRoomCo
 
-vector<Point> Map::coordRoomCo (int x, int y)
+std::vector<Point> Map::coordRoomCo (int x, int y, int** grille)
 {
-    vector<Point> res;
+    std::vector<Point> res;
     Point p = {0,0};
 
     if (isCorner(x,y))
     {
         if (y == 0 && x == 0)
         {
-            if (m_tab[y][x+1] == 1)
+            if (grille[y][x+1] == 1)
             {
                 p.x = x+1;
                 p.y = y;
                 res.push_back(p);
             }
-            if (m_tab[y+1][x] == 1)
+            if (grille[y+1][x] == 1)
             {
                 p.x = x;
                 p.y = y+1;
@@ -196,13 +204,13 @@ vector<Point> Map::coordRoomCo (int x, int y)
         }
         else if (y == 0 && x == SIZE_MAX - 1)
         {
-            if (m_tab[y][x-1] == 1)
+            if (grille[y][x-1] == 1)
             {
                 p.x = x-1;
                 p.y = y;
                 res.push_back(p);
             }
-            if (m_tab[y+1][x] == 1)
+            if (grille[y+1][x] == 1)
             {
                 p.x = x;
                 p.y = y+1;
@@ -211,13 +219,13 @@ vector<Point> Map::coordRoomCo (int x, int y)
         }
         else if (y == SIZE_MAX - 1 && x == 0)
         {
-            if (m_tab[y-1][x] == 1)
+            if (grille[y-1][x] == 1)
             {
                 p.y = y-1;
                 p.x = x;
                 res.push_back(p);
             }
-            if (m_tab[y][x+1] == 1)
+            if (grille[y][x+1] == 1)
             {
                 p.y = y;
                 p.x = x+1;
@@ -226,13 +234,13 @@ vector<Point> Map::coordRoomCo (int x, int y)
         }
         else if (y == SIZE_MAX - 1 && x == SIZE_MAX - 1)
         {
-            if (m_tab[y-1][x] == 1)
+            if (grille[y-1][x] == 1)
             {
                 p.y = y-1;
                 p.x = x;
                 res.push_back(p);
             }
-            if (m_tab[y][x-1] == 1)
+            if (grille[y][x-1] == 1)
             {
                 p.x = x-1;
                 p.y = y;
@@ -244,19 +252,19 @@ vector<Point> Map::coordRoomCo (int x, int y)
     {
         if (y == 0)
         {
-            if (m_tab[y][x-1] == 1)
+            if (grille[y][x-1] == 1)
             {
                 p.x = x-1;
                 p.y = y;
                 res.push_back(p);
             }
-            if (m_tab[y][x+1] == 1)
+            if (grille[y][x+1] == 1)
             {
                 p.x = x+1;
                 p.y = y;
                 res.push_back(p);
             }
-            if (m_tab[y+1][x] == 1)
+            if (grille[y+1][x] == 1)
             {
                 p.x = x;
                 p.y = y+1;
@@ -265,19 +273,19 @@ vector<Point> Map::coordRoomCo (int x, int y)
         }
         else if (y == SIZE_MAX - 1)
         {
-            if (m_tab[y][x-1] == 1)
+            if (grille[y][x-1] == 1)
             {
                 p.x = x-1;
                 p.y = y;
                 res.push_back(p);
             }
-            if (m_tab[y][x+1] == 1)
+            if (grille[y][x+1] == 1)
             {
                 p.x = x+1;
                 p.y = y;
                 res.push_back(p);
             }
-            if (m_tab[y-1][x] == 1)
+            if (grille[y-1][x] == 1)
             {
                 p.x = x;
                 p.y = y-1;
@@ -286,19 +294,19 @@ vector<Point> Map::coordRoomCo (int x, int y)
         }
         else if (x == 0)
         {
-            if (m_tab[y-1][x] == 1)
+            if (grille[y-1][x] == 1)
             {
                 p.x = x;
                 p.y = y-1;
                 res.push_back(p);
             }
-            if (m_tab[y+1][x] == 1)
+            if (grille[y+1][x] == 1)
             {
                 p.x = x;
                 p.y = y+1;
                 res.push_back(p);
             }
-            if (m_tab[y][x+1] == 1)
+            if (grille[y][x+1] == 1)
             {
                 p.x = x+1;
                 p.y = y;
@@ -307,19 +315,19 @@ vector<Point> Map::coordRoomCo (int x, int y)
         }
         else // x == SIZE_MAX - 1
         {
-            if (m_tab[y-1][x] == 1)
+            if (grille[y-1][x] == 1)
             {
                 p.x = x;
                 p.y = y-1;
                 res.push_back(p);
             }
-            if (m_tab[y+1][x] == 1)
+            if (grille[y+1][x] == 1)
             {
                 p.x = x;
                 p.y = y+1;
                 res.push_back(p);
             }
-            if (m_tab[y][x-1] == 1)
+            if (grille[y][x-1] == 1)
             {
                 p.x = x-1;
                 p.y = y;
@@ -329,25 +337,25 @@ vector<Point> Map::coordRoomCo (int x, int y)
     }
     else
     {
-        if (m_tab[y-1][x] == 1)
+        if (grille[y-1][x] == 1)
         {
             p.x = x;
             p.y = y-1;
             res.push_back(p);
         }
-        if (m_tab[y+1][x] == 1)
+        if (grille[y+1][x] == 1)
         {
             p.x = x;
             p.y = y+1;
             res.push_back(p);
         }
-        if (m_tab[y][x-1] == 1)
+        if (grille[y][x-1] == 1)
         {
             p.x = x-1;
             p.y = y;
             res.push_back(p);
         }
-        if (m_tab[y][x+1] == 1)
+        if (grille[y][x+1] == 1)
         {
             p.x = x+1;
             p.y = y;
@@ -567,7 +575,7 @@ void Map::createRoomCo (int x, int y)
             random--;
         }
     }
-} // createSalleCo
+}
 
 void Map::initTab(int** t)
 {
@@ -636,15 +644,15 @@ bool Map::setEvent()
     return trouve;
 }
 
-int Map::packNumber ()
+int Map::packNumber (int** t)
 {
     int** check = new int*[SIZE_MAX];
     int res = 0;
     int x = 0;
     int y = 0;
     bool trouve = false;
-    vector<Point> aCheck;
-    vector<Point> temp;
+    std::vector<Point> aCheck;
+    std::vector<Point> temp;
     Point p = {0,0};
 
     for(int i=0; i<SIZE_MAX; i++)
@@ -654,7 +662,7 @@ int Map::packNumber ()
 
     initTab(check);
 
-    copyTab(m_tab, check);
+    copyTab(t, check);
 
     while(!isEmpty(check))
     {
@@ -670,6 +678,7 @@ int Map::packNumber ()
                 }
             }
         }
+
         aCheck = coordRoomCo(p.x,p.y,check);
         aCheck.push_back(p);
 
@@ -707,8 +716,8 @@ int Map::distanceRoom(Point a, Point b)
 int** Map::extractPack()
 {
     int** check = new int*[SIZE_MAX];
-    vector<Point> aCheck;
-    vector<Point> temp;
+    std::vector<Point> aCheck;
+    std::vector<Point> temp;
     int x = 0;
     int y = 0;
     bool trouve = false;
@@ -725,7 +734,7 @@ int** Map::extractPack()
     {
         for(int j = 0; j < SIZE_MAX && !trouve; j++)
         {
-            if(grille[j][i] == 1)
+            if(m_tab[j][i] == 1)
             {
                 p.x = i;
                 p.y = j;
@@ -787,9 +796,9 @@ void Map::linkPacks()
     int y1 = 0;
     int x2 = 0;
     int y2 = 0;
-    vector<Point> pack[2];
-    vector<Point> aCheck;
-    vector<Point> temp;
+    std::vector<Point> pack[2];
+    std::vector<Point> aCheck;
+    std::vector<Point> temp;
     Point p = {0,0};
 
     for(int i=0; i<SIZE_MAX; i++)
@@ -958,16 +967,16 @@ bool Map::joinPack ()
     }
     else if (packNumber(m_tab) == 2)// 2 packs, il faut les relier
     {
-        linkPacks(m_tab);
+        linkPacks();
         res = true;
     }
 
     else if (packNumber(m_tab) == 3) // 3 packs, on relie tout
     {
-        aInsert = extractPack(m_tab);
-        linkPacks(m_tab);
+        aInsert = extractPack();
+        linkPacks();
         insertTab(aInsert, m_tab);
-        linkPacks(m_tab);
+        linkPacks();
     }
 
     freeTab(aInsert);
@@ -986,24 +995,43 @@ void Map::generateMap()
         m_tab[i] = new int[SIZE_MAX];
     }
 
-    while(!(packNumber() == 3))
+    while(!(packNumber(m_tab) == 3))
     {
         initTab(m_tab);
         m_tab[y][x] = 1;
-        createRoomCo(x, y, m_tab);
+        createRoomCo(x, y);
 
         for (int i = 0; i < 8; i++)
         {
             x = rand()%(SIZE_MAX-10) + 5;
             y = rand()%(SIZE_MAX-10) + 5;
             m_tab[y][x] = 1;
-            createRoomCo(x, y, m_tab);
+            createRoomCo(x, y);
         }
     }
 
-    joinPack(m_tab);
-    setEvent(m_tab);
-    draw_map(m_tab);
+    joinPack();
+    setEvent();
+}
+
+
+
+Point Map::findStart ()
+{
+    Point res = {0,0};
+    for(int i=0; i < SIZE_MAX; i++)
+    {
+        for(int j=0; j< SIZE_MAX; j++)
+        {
+            if(m_tab[j][i] == 2)
+            {
+                res.x = j;
+                res.y = i;
+            }
+        }
+    }
+
+    return res;
 }
 
 void Map::draw(sf::RenderTarget& t, sf::RenderStates s) const
