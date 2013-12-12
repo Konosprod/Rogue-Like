@@ -129,8 +129,8 @@ void Room::createChest()
 
     while(!isPlaced)
     {
-        int x = rand()%(m_x-2) + 1;
-        int y = rand()%(m_y-2) + 1;
+        int x = rand()%(m_x-4) + 2;
+        int y = rand()%(m_y-4) + 2;
 
         if(m_tab[1][y][x] == 0)
         {
