@@ -13,6 +13,7 @@
 class Room : public sf::Drawable, public sf::Transformable
 {
     public:
+
         Room(bool connexions[], bool hasChest = false);
         virtual ~Room();
 
@@ -27,6 +28,7 @@ class Room : public sf::Drawable, public sf::Transformable
         void initTab();
         void deleteTab();
         void createMob();
+        void createChest();
 
     private:
         bool m_connexions[4];

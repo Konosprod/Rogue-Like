@@ -1,11 +1,15 @@
 #include "Room.h"
 
+
 Room::Room(bool connexions[], bool hasChest) : m_hasChest(hasChest)
+
 {
-    for(int i = 0; i < 4; i++)
+     for(int i = 0; i < 4; i++)
     {
         m_connexions[i] = connexions[i];
     }
+
+    m_hasChest = hasChest;
 }
 
 Room::~Room()
@@ -121,6 +125,25 @@ void Room::createMob()
     }
 }
 
+void Room::createChest()
+{
+    bool isPlaced = false;
+
+    while(!isPlaced)
+    {
+        int x = rand()%(m_x-2) + 1;
+        int y = rand()%(m_y-2) + 1;
+
+        if(m_tab[1][y][x] == 0)
+        {
+            m_tab[1][y][x] = 8;
+            isPlaced = true;
+        }
+
+    }
+
+}
+
 void Room::generateRoom()
 {
     m_x = rand()%5+12;
@@ -144,6 +167,11 @@ void Room::generateRoom()
     createWall();
     createTP();
     createMob();
+
+    if (m_hasChest)
+    {
+        createChest();
+    }
 
     loadTileset();
 }
