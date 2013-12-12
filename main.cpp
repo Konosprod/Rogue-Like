@@ -1,8 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include "Room.h"
 
-//test Git-
-
 int main()
 {
     bool connexions[4];
