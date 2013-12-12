@@ -33,6 +33,7 @@ class Room : public sf::Drawable, public sf::Transformable
         void createMob();
         void createChest();
         void createHealer();
+        void createEvent();
 
     private:
         bool* m_connexions;

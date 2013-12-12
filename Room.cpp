@@ -23,6 +23,23 @@ void Room::createGround()
     }
 }
 
+void Room::createEvent()
+{
+    bool isPlaced = false;
+
+    while(!isPlaced)
+    {
+        int x = rand()%(m_x-4) + 2;
+        int y = rand()%(m_y-4) + 2;
+
+        if(m_tab[1][y][x] == 0)
+        {
+            m_tab[1][y][x] = 10;
+            isPlaced = true;
+        }
+    }
+}
+
 void Room::generateEventRoom()
 {
     m_x = rand()%5+12;
@@ -45,6 +62,7 @@ void Room::generateEventRoom()
     createGround();
     createWall();
     createTP();
+    createEvent();
 
     loadTileset();
 }
