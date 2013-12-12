@@ -19,11 +19,13 @@ class Map : public sf::Drawable, public sf::Transformable
     protected:
         void generateMap();
         void copyTab(int** src, int** dest);
-        bool isCorner (int y, int x);
+        bool isCorner(int y, int x);
         void freeTab(int** t);
-        bool isEmpty ();
-        bool isOnEdge (int y, int x);
+        bool isEmpty();
+        bool isOnEdge(int y, int x);
         void numberRoomCo(int x, int y);
+        vector<Point> coordRoomCo(int x, int y);
+        void Map::createRoomCo (int x, int y);
 
     private:
         int m_nbRoom;
