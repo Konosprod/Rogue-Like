@@ -5,6 +5,7 @@
 #include <ctime>
 #include <iostream>
 #include <SFML/Graphics.hpp>
+#include "Tile.h"
 
 #define LAYER 3
 #define TILE_WIDTH 32
@@ -45,7 +46,7 @@ class Room : public sf::Drawable, public sf::Transformable
 
         sf::Texture m_tileset;
         sf::VertexArray m_vertices;
-        std::vector<sf::Sprite> m_rect;
+        std::vector<Tile> m_tiles;
 
         void loadTileset();
         virtual void draw(sf::RenderTarget& t, sf::RenderStates s) const;

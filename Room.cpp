@@ -286,9 +286,9 @@ void Room::generateRoom()
 
 void Room::draw(sf::RenderTarget& t, sf::RenderStates s) const
 {
-    for(unsigned int i = 0; i < m_rect.size(); i++)
+    for(unsigned int i = 0; i < m_tiles.size(); i++)
     {
-        t.draw(m_rect[i]);
+        t.draw(m_tiles[i].getSprite());
     }
 }
 
@@ -305,9 +305,12 @@ void Room::loadTileset()
         {
             for(unsigned int k = 0; k < m_y; k++)
             {
+                Tile tile;
                 sf::Sprite r;
-                r.setTexture(m_tileset);
                 sf::IntRect rect;
+
+
+                r.setTexture(m_tileset);
 
                 rect.height = 32;
                 rect.width = 32;
@@ -317,7 +320,8 @@ void Room::loadTileset()
 
                 r.setTextureRect(rect);
                 r.setPosition(k*TILE_HEIGHT, j*TILE_WIDTH);
-                m_rect.push_back(r);
+                tile.setSprite(r);
+                m_tiles.push_back(tile);
             }
         }
     }

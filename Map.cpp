@@ -11,7 +11,6 @@ Map::~Map()
     {
         for(int j = 0; j < SIZE_MAX; j++)
         {
-            //m_rooms[i][j]->~Room();
             delete[] m_rooms[i];
         }
     }
