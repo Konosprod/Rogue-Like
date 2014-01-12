@@ -25,8 +25,12 @@ class Map : public sf::Drawable, public sf::Transformable
         Map();
         virtual ~Map();
         void generateMap();
-        void moveRoom(int x, int y);
+        void moveRoom(Dir d);
         void drawMapDebug();
+        bool isValidMove(int x, int y);
+        bool isChangingTile(int x, int y);
+        sf::Vector2i getTP(Dir d);
+        void currentRoom();
 
     protected:
         void initTab(int** t);

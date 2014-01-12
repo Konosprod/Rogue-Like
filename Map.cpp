@@ -1298,47 +1298,23 @@ bool* Map::dirRoomCo (int x, int y)
     return res;
 }
 
-void Map::moveRoom(int x, int y)
+void Map::moveRoom(Dir d)
 {
-    if(x > 0)
+    if(d == Up)
     {
-        if((m_currentPos.x+1) < SIZE_MAX)
-        {
-            if(m_tab[m_currentPos.y][m_currentPos.x+1] != 0)
-            {
-                m_currentPos.x++;
-            }
-        }
+        m_currentPos.y--;
     }
-    else if(x < 0)
+    else if(d == Right)
     {
-        if((m_currentPos.x-1) >= 0)
-        {
-            if(m_tab[m_currentPos.y][m_currentPos.x-1] != 0)
-            {
-                m_currentPos.x--;
-            }
-        }
+        m_currentPos.x++;
     }
-    else if(y > 0)
+    else if(d == Down)
     {
-        if((m_currentPos.y+1) < SIZE_MAX)
-        {
-            if(m_tab[m_currentPos.y+1][m_currentPos.x] != 0)
-            {
-                m_currentPos.y++;
-            }
-        }
+        m_currentPos.y++;
     }
-    else if(y < 0)
+    else
     {
-        if((m_currentPos.y-1) >= 0)
-        {
-            if(m_tab[m_currentPos.y-1][m_currentPos.x] != 0)
-            {
-                m_currentPos.y--;
-            }
-        }
+        m_currentPos.x--;
     }
 }
 
@@ -1355,7 +1331,7 @@ void Map::createRooms()
     {
         for(int j = 0; j < SIZE_MAX; j++)
         {
-            m_rooms[i][j] = NULL;
+            m_rooms[j][i] = NULL;
         }
     }
 
@@ -1363,29 +1339,29 @@ void Map::createRooms()
     {
         for(int j = 0; j < SIZE_MAX; j++)
         {
-            if(m_tab[i][j] != 0)
+            if(m_tab[j][i] != 0)
             {
-                m_rooms[i][j] = new Room(dirRoomCo(j, i), (m_tab[i][j] == CHEST_ROOM) ? true : false, (m_tab[i][j] == HEAL_ROOM) ? true : false);
+                m_rooms[j][i] = new Room(dirRoomCo(i, j), (m_tab[j][i] == CHEST_ROOM) ? true : false, (m_tab[j][i] == HEAL_ROOM) ? true : false);
 
-                if(m_tab[i][j] == HEAL_ROOM)
+                if(m_tab[j][i] == HEAL_ROOM)
                 {
-                    m_rooms[i][j]->generateHealRoom();
+                    m_rooms[j][i]->generateHealRoom();
                 }
-                else if(m_tab[i][j] == START_ROOM)
+                else if(m_tab[j][i] == START_ROOM)
                 {
-                    m_rooms[i][j]->generateStartRoom();
+                    m_rooms[j][i]->generateStartRoom();
                 }
-                else if(m_tab[i][j] == EVENT_ROOM)
+                else if(m_tab[j][i] == EVENT_ROOM)
                 {
-                    m_rooms[i][j]->generateEventRoom();
+                    m_rooms[j][i]->generateEventRoom();
                 }
-                else if(m_tab[i][j] == CHEST_ROOM)
+                else if(m_tab[j][i] == CHEST_ROOM)
                 {
-                    m_rooms[i][j]->generateRoom();
+                    m_rooms[j][i]->generateRoom();
                 }
                 else
                 {
-                    m_rooms[i][j]->generateRoom();
+                    m_rooms[j][i]->generateRoom();
                 }
             }
         }
@@ -1394,29 +1370,50 @@ void Map::createRooms()
     m_currentPos = findStart();
 }
 
+void Map::currentRoom()
+{
+    std::cout << "currentRoom : y : " << m_currentPos.y << " x : " << m_currentPos.x << std::endl;
+}
+
+bool Map::isValidMove(int x, int y)
+{
+    return !(m_rooms[m_currentPos.y][m_currentPos.x]->getTile(x/32, y/32).isBlocking());
+}
+
+bool Map::isChangingTile(int x, int y)
+{
+    return (m_rooms[m_currentPos.y][m_currentPos.x]->getTile(x/32, y/32).isTP());
+}
+
+
+sf::Vector2i Map::getTP(Dir d)
+{
+    return m_rooms[m_currentPos.y][m_currentPos.x]->getTP(d);
+}
+
 void Map::drawMapDebug()
 {
    for (int i=0; i<SIZE_MAX; i++)
     {
         for (int j=0; j<SIZE_MAX; j++)
         {
-            if(m_tab[j][i] == 1)
+            if(m_tab[i][j] == 1)
             {
                 std::cout << "*";
             }
-            else if (m_tab[j][i] == START_ROOM)
+            else if (m_tab[i][j] == START_ROOM)
             {
                 std::cout << "O";
             }
-            else if (m_tab[j][i] == EVENT_ROOM)
+            else if (m_tab[i][j] == EVENT_ROOM)
             {
                 std::cout << "X";
             }
-            else if (m_tab[j][i] == CHEST_ROOM)
+            else if (m_tab[i][j] == CHEST_ROOM)
             {
                 std::cout << "C";
             }
-            else if (m_tab[j][i] == HEAL_ROOM)
+            else if (m_tab[i][j] == HEAL_ROOM)
             {
                 std::cout << "H";
             }
@@ -1426,6 +1423,8 @@ void Map::drawMapDebug()
             }
         }
         std::cout << std::endl;
+
+        //m_rooms[m_currentPos.y][m_currentPos.x]->drawRoomDebug();
     }
 }
 

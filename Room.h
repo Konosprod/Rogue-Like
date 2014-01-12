@@ -11,6 +11,8 @@
 #define TILE_WIDTH 32
 #define TILE_HEIGHT 32
 
+enum Dir{Up = 0, Right = 1, Down = 2, Left = 3};
+
 class Room : public sf::Drawable, public sf::Transformable
 {
     public:
@@ -24,6 +26,11 @@ class Room : public sf::Drawable, public sf::Transformable
 
         int getX() {return m_x;};
         int getY() {return m_y;};
+
+        void drawRoomDebug();
+
+        Tile getTile(int x, int y);
+        sf::Vector2i getTP(Dir d);
 
     protected:
         void createGround();
@@ -46,7 +53,7 @@ class Room : public sf::Drawable, public sf::Transformable
 
         sf::Texture m_tileset;
         sf::VertexArray m_vertices;
-        std::vector<Tile> m_tiles;
+        Tile*** m_tiles;
 
         void loadTileset();
         virtual void draw(sf::RenderTarget& t, sf::RenderStates s) const;

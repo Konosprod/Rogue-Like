@@ -18,10 +18,23 @@ void Room::createGround()
     {
         for(unsigned int j = 0; j < m_x; j++)
         {
-            m_tab[0][i][j] = 1;
+            m_tab[0][i][j] = FLOOR_T;
         }
     }
 }
+
+void Room::drawRoomDebug()
+{
+    for (int y = 0; y < m_y; y++)
+    {
+        for (int x = 0; x < m_x; x++)
+        {
+            std::cout << (int)m_tab[1][y][x];
+        }
+        std::cout << std::endl;
+    }
+}
+
 
 void Room::createEvent()
 {
@@ -34,7 +47,7 @@ void Room::createEvent()
 
         if(m_tab[1][y][x] == 0)
         {
-            m_tab[1][y][x] = 10;
+            m_tab[1][y][x] = STAIRS_T;
             isPlaced = true;
         }
     }
@@ -105,7 +118,7 @@ void Room::createHealer()
 
         if(m_tab[1][y][x] == 0)
         {
-            m_tab[1][y][x] = 9;
+            m_tab[1][y][x] = HEALER_T;
             isPlaced = true;
         }
     }
@@ -115,14 +128,14 @@ void Room::createWall()
 {
     for(unsigned int i = 0; i < m_x; i++)
     {
-        m_tab[1][0][i] = 2;
-        m_tab[1][m_y-1][i] = 2;
+        m_tab[1][0][i] = WALL_T;
+        m_tab[1][m_y-1][i] = WALL_T;
     }
 
     for(unsigned int i = 0; i < m_y; i++)
     {
-        m_tab[1][i][0] = 2;
-        m_tab[1][i][m_x-1] = 2;
+        m_tab[1][i][0] = WALL_T;
+        m_tab[1][i][m_x-1] = WALL_T;
     }
 }
 
@@ -139,11 +152,11 @@ void Room::createTP()
 
                 if(i == 0)
                 {
-                    m_tab[1][0][pos] = 3;
+                    m_tab[1][0][pos] = N_TP_T;
                 }
                 else
                 {
-                    m_tab[1][m_y-1][pos] = 5;
+                    m_tab[1][m_y-1][pos] = S_TP_T;
                 }
             }
             else
@@ -152,11 +165,11 @@ void Room::createTP()
 
                 if(i == 3)
                 {
-                    m_tab[1][pos][0] = 4;
+                    m_tab[1][pos][0] = O_TP_T;
                 }
                 else
                 {
-                    m_tab[1][pos][m_x-1] = 6;
+                    m_tab[1][pos][m_x-1] = E_TP_T;
                 }
             }
         }
@@ -184,12 +197,15 @@ void Room::deleteTab()
         for(unsigned int j = 0; j < m_y; j++)
         {
             delete[] m_tab[i][j];
+            delete[] m_tiles[i][j];
         }
 
         delete[] m_tab[i];
+        delete[] m_tiles[i];
     }
 
-    delete m_tab;
+    delete[] m_tiles;
+    delete[] m_tab;
 }
 
 void Room::createChest()
@@ -203,7 +219,7 @@ void Room::createChest()
 
         if(m_tab[1][y][x] == 0)
         {
-            m_tab[1][y][x] = 8;
+            m_tab[1][y][x] = CHEST_T;
             isPlaced = true;
         }
     }
@@ -220,7 +236,7 @@ void Room::createMob()
 
         if (m_tab[1][y][x] == 0)
         {
-            m_tab[1][y][x] = 7;
+            m_tab[1][y][x] = ZOMBIE_T;
         }
     }
 }
@@ -284,30 +300,105 @@ void Room::generateRoom()
     loadTileset();
 }
 
+Tile Room::getTile(int x, int y)
+{
+    return m_tiles[1][y][x];
+}
+
+sf::Vector2i Room::getTP(Dir d)
+{
+    sf::Vector2i v;
+    int  i = 0;
+    if(d == Up)
+    {
+        while(m_tab[1][0][i] != N_TP_T)
+        {
+            i++;
+        }
+        v.y = 0;
+        v.x = i;
+    }
+
+    if(d == Right)
+    {
+        while(m_tab[1][i][m_x - 1] != E_TP_T)
+        {
+            i++;
+        }
+
+        v.y = i;
+        v.x = m_x-1;
+    }
+
+    if(d == Down)
+    {
+        while(m_tab[1][m_y-1][i] != S_TP_T)
+        {
+            i++;
+        }
+        //std::cout << (int)m_tab[1][m_y-1][i] << std::endl;
+        v.y = m_y-1;
+        v.x = i;
+    }
+
+    if(d == Left)
+    {
+        while(m_tab[1][i][0] != O_TP_T)
+        {
+            i++;
+        }
+
+        v.y = i;
+        v.x = 0;
+    }
+
+    //std::cout << v.x << " " << v.y << std::endl;
+
+    return v;
+}
+
 void Room::draw(sf::RenderTarget& t, sf::RenderStates s) const
 {
-    for(unsigned int i = 0; i < m_tiles.size(); i++)
+    for(int i = 0; i < LAYER; i++)
     {
-        t.draw(m_tiles[i].getSprite());
+        for(unsigned int j = 0; j < m_y; j++)
+        {
+            for(unsigned int k = 0; k < m_x; k++)
+            {
+                t.draw(m_tiles[i][j][k].getSprite());
+            }
+        }
     }
 }
 
 void Room::loadTileset()
 {
     if(!m_tileset.loadFromFile("rc/test.png"))
-    {
         std::cerr << "Erreur : impossible de charger test.png" << std::endl;
+
+
+    m_tiles = new Tile**[LAYER];
+
+    for(int i = 0; i < LAYER; i++)
+    {
+        m_tiles[i] = new Tile*[m_y];
+
+        for(unsigned int j = 0; j < m_y; j++)
+        {
+            m_tiles[i][j] = new Tile[m_x];
+        }
     }
 
     for(int i = 0; i < LAYER; i++)
     {
-        for(unsigned int j = 0; j < m_x; j++)
+        for(unsigned int j = 0; j < m_y; j++)
         {
-            for(unsigned int k = 0; k < m_y; k++)
+            for(unsigned int k = 0; k < m_x; k++)
             {
                 Tile tile;
                 sf::Sprite r;
                 sf::IntRect rect;
+                int tileValue = m_tab[i][j][k];
 
 
                 r.setTexture(m_tileset);
@@ -315,13 +406,25 @@ void Room::loadTileset()
                 rect.height = 32;
                 rect.width = 32;
 
-                rect.top = (m_tab[i][k][j] / (m_tileset.getSize().x / 32))*32;
-                rect.left = (m_tab[i][k][j] % (m_tileset.getSize().x / 32))*32;
+                rect.top = (tileValue / (m_tileset.getSize().y / 32))*32;
+                rect.left = (tileValue % (m_tileset.getSize().x / 32))*32;
 
                 r.setTextureRect(rect);
                 r.setPosition(k*TILE_HEIGHT, j*TILE_WIDTH);
+
                 tile.setSprite(r);
-                m_tiles.push_back(tile);
+
+                if((tileValue == N_TP_T) || (tileValue == E_TP_T) || (tileValue == S_TP_T) || (tileValue == O_TP_T))
+                    tile.setIsTP(true);
+                if(tileValue == WALL_T)
+                    tile.setBlocking(true);
+                else
+                    tile.setBlocking(false);
+
+                if(tileValue == CHEST_T)
+                    tile.setAnimated(true);
+
+                m_tiles[i][j][k] = tile;
             }
         }
     }
