@@ -23,13 +23,14 @@ class Tile
         virtual ~Tile();
 
         enum TileState{
-    Blocking = 0,
-    TP = 1,
-    Stairs = 2,
-    Animated = 3,
-    Chest = 4,
-    Healer = 5
-};
+            Blocking = 0,
+            TP = 1,
+            Stairs = 2,
+            Animated = 3,
+            Chest = 4,
+            Healer = 5,
+            StateMax = 6
+        };
 
         sf::Sprite getSprite() const;
 
@@ -52,7 +53,7 @@ class Tile
 
     private:
         sf::Sprite m_sprite;
-        bool m_properties[Healer+1];
+        bool m_properties[StateMax];
 };
 
 #endif // TILE_H
