@@ -3,64 +3,56 @@
 
 #include <vector>
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include "Room.h"
+#include "Character.h"
+#include "MapRandomizer.h"
 
-#define SIZE_MAX 20
-#define HEAL_ROOM 5
-#define CHEST_ROOM 4
-#define EVENT_ROOM 3
-#define START_ROOM 2
-#define END_ROOM 6
-
-typedef struct Point
-{
-    int x;
-    int y;
-}Point;
-
+enum Event{
+    None,
+    Healer,
+    Chest
+};
 
 class Map : public sf::Drawable, public sf::Transformable
 {
     public:
-        Map();
+        Map(std::string tileset, std::string music, int floorMax);
         virtual ~Map();
-        void generateMap();
         void moveRoom(Dir d);
         void drawMapDebug();
-        bool isValidMove(int x, int y);
+
+        bool isValidMove(Character& c);
         bool isChangingTile(int x, int y);
+        bool isChangingFloor(int x, int y);
+
         sf::Vector2i getTP(Dir d);
         void currentRoom();
 
+        void openChest();
+        bool update(Character& c);
+        void nextFloor();
+        Event checkEvent(Character& c);
+
     protected:
-        void initTab(int** t);
+        void generateMap();
         void freeTab(int** t);
-        void insertTab(int** src, int** dst);
-        void copyTab(int** src, int** dest);
-        bool isCorner(int y, int x);
-        bool isEmpty(int** t);
-        bool isOnEdge(int y, int x);
-        int numberRoomCo(int x, int y, int** t);
-        std::vector<Point> coordRoomCo(int x, int y, int** grille);
-        void createRoomCo (int x, int y);
-        bool setEvent ();
-        int packNumber (int** t);
-        int** extractPack();
-        void linkPacks();
-        bool joinPack();
-        Point findStart();
-        int distanceRoom(Point a, Point b);
-        void getNbRoom();
         void createRooms();
-        bool* dirRoomCo (int x, int y);
-        void setChest ();
-        void setHeal();
+        void freeRooms();
+        void getNbRoom();
 
     private:
         int m_nbRoom;
+        int m_floor;
+        std::string m_tileset;
+        int m_floorMax;
         int** m_tab;
         Room*** m_rooms;
         Point m_currentPos;
+        MapRandomizer m_randomizer;
+        //sf::Music m_music;
+        bool m_done;
+
 
         virtual void draw(sf::RenderTarget& t, sf::RenderStates s) const;
 };

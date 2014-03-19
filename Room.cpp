@@ -23,11 +23,22 @@ void Room::createGround()
     }
 }
 
+bool Room::setTileset(std::string filename)
+{
+    if(!m_tileset.loadFromFile(filename))
+    {
+        std::cerr << "Erreur : impossible de charger : " << filename << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
 void Room::drawRoomDebug()
 {
-    for (int y = 0; y < m_y; y++)
+    for (unsigned int y = 0; y < m_y; y++)
     {
-        for (int x = 0; x < m_x; x++)
+        for (unsigned int x = 0; x < m_x; x++)
         {
             std::cout << (int)m_tab[1][y][x];
         }
@@ -144,36 +155,89 @@ void Room::createTP()
     int pos = 0;
     for(int i = 0; i < 4; i++)
     {
+        bool done = false;
         if(m_connexions[i])
         {
-            if(i%2 == 0)
+            while(!done)
             {
-                pos = ((m_x/4) + rand()%(m_x/2));
-
-                if(i == 0)
+                if(i%2 == 0 )
                 {
-                    m_tab[1][0][pos] = N_TP_T;
+                    pos = ((m_x/4) + rand()%(m_x/2));
+
+                    if(i == 0 && isTPSetable(i, pos))
+                    {
+                        m_tab[1][0][pos] = N_TP_T;
+                        done = true;
+                    }
+                    else if(isTPSetable(i, pos))
+                    {
+                        m_tab[1][m_y-1][pos] = S_TP_T;
+                        done = true;
+                    }
                 }
                 else
                 {
-                    m_tab[1][m_y-1][pos] = S_TP_T;
-                }
-            }
-            else
-            {
-                pos = ((m_y/4) + rand()%(m_y/2));
+                    pos = ((m_y/4) + rand()%(m_y/2));
 
-                if(i == 3)
-                {
-                    m_tab[1][pos][0] = O_TP_T;
-                }
-                else
-                {
-                    m_tab[1][pos][m_x-1] = E_TP_T;
+                    if(i == 3 && isTPSetable(i, pos))
+                    {
+                        m_tab[1][pos][0] = O_TP_T;
+                        done = true;
+                    }
+                    else if(isTPSetable(i, pos))
+                    {
+                        m_tab[1][pos][m_x-1] = E_TP_T;
+                        done = true;
+                    }
                 }
             }
         }
+        done = false;
     }
+}
+
+
+
+bool Room::isTPSetable(int i, int pos)
+{
+    bool res = false;
+
+    switch(i)
+    {
+        case 0:
+        {
+            if(m_tab[1][0][pos] == 2 && m_tab[1][1][pos] != 2)
+                res = true;
+
+            break;
+        }
+
+        case 1:
+        {
+            if(m_tab[1][pos][m_x-1] == 2 && m_tab[1][pos][m_x-2] != 2)
+                res = true;
+
+            break;
+        }
+
+        case 2:
+        {
+            if(m_tab[1][m_y-1][pos] == 2 && m_tab[1][m_y-2][pos] != 2)
+                res = true;
+
+            break;
+        }
+
+        case 3:
+        {
+            if(m_tab[1][pos][0] == 2 && m_tab[1][pos][1] != 2)
+                res = true;
+
+            break;
+        }
+    }
+
+    return res;
 }
 
 void Room::initTab()
@@ -229,14 +293,17 @@ void Room::createMob()
 {
     int nbMob = rand()%6;
 
-    for(int i = 0; i < nbMob; i++)
+    int i = 0;
+
+    while(i < nbMob)
     {
         int y = rand()%(m_y-4) + 2;
         int x = rand()%(m_x-4) + 2;
 
-        if (m_tab[1][y][x] == 0)
+        if (m_tab[1][y][x] == 0 && m_tab[0][y][x] != 0)
         {
             m_tab[1][y][x] = ZOMBIE_T;
+            i++;
         }
     }
 }
@@ -267,6 +334,123 @@ void Room::generateStartRoom()
     loadTileset();
 }
 
+void Room::generateEndRoom()
+{
+    generateRoom();
+}
+
+void Room::alterRoom()
+{
+    int choice = rand()%4;
+    int alterX = rand()%3 + 4;
+    int alterY = rand()%3 + 4;
+    int borderX = m_x-1;
+    int borderY = m_y-1;
+
+    switch(choice)
+    {
+        case 0:
+            for(int k = 0; k < LAYER; k++)
+            {
+                for(int i = 0; i < alterX; i++)
+                {
+                    for(int j = 0; j < alterY; j++)
+                    {
+                        m_tab[k][j][i] = 0;
+                    }
+                }
+            }
+            for(int i = 0; i < alterY; i++)
+            {
+                m_tab[1][i][alterX] = 2;
+            }
+            for(int i = 0; i < alterX; i++)
+            {
+                m_tab[1][alterY][i] = 2;
+            }
+
+            m_tab[1][alterY][alterX] = 2;
+        break;
+
+        case 1:
+            for(int i = borderX; i > borderX - alterX; i--)
+            {
+                m_tab[1][alterY][i] = 2;
+            }
+            for(int j=0; j<alterY; j++)
+            {
+                m_tab[1][j][borderX-alterX] = 2;
+            }
+
+            for(int k = 0; k < LAYER; k++)
+            {
+                for(int i=borderX; i>borderX-alterX; i--)
+                {
+                    for(int j=0; j<alterY; j++)
+                    {
+                        m_tab[k][j][i] = 0;
+                    }
+                }
+            }
+
+            m_tab[1][alterY][borderX-alterX] = 2;
+        break;
+
+        case 2:
+             for(int i=0; i<alterX; i++)
+             {
+                 m_tab[1][borderY-alterY][i] = 2;
+             }
+
+             for(int j=borderY; j>borderY-alterY; j--)
+             {
+                 m_tab[1][j][alterX] = 2;
+             }
+
+             for(int k = 0; k < LAYER; k++)
+             {
+                for(int i=0; i<alterX; i++)
+                {
+                    for(int j=borderY; j>borderY-alterY; j--)
+                    {
+                        m_tab[k][j][i] = 0;
+                    }
+                }
+             }
+
+             m_tab[1][borderY-alterY][alterX] = 2;
+        break;
+
+        case 3:
+            for(int i=borderX; i>borderX-alterX; i--)
+            {
+                m_tab[1][borderY-alterY][i] = 2;
+            }
+            for(int j=borderY; j>borderY-alterY; j--)
+            {
+                m_tab[1][j][borderX-alterX] = 2;
+            }
+
+            for(int k = 0; k < LAYER; k++)
+            {
+                for(int i=borderX; i>borderX-alterX; i--)
+                {
+                    for(int j=borderY; j>borderY-alterY; j--)
+                    {
+                        m_tab[k][j][i] = 0;
+                    }
+                }
+            }
+
+            m_tab[1][borderY-alterY][borderX-alterX] = 2;
+
+        break;
+
+        default:
+        break;
+    }
+}
+
 void Room::generateRoom()
 {
     m_x = rand()%5+12;
@@ -288,6 +472,7 @@ void Room::generateRoom()
 
     createGround();
     createWall();
+    alterRoom();
     createTP();
     createMob();
 
@@ -369,14 +554,12 @@ void Room::draw(sf::RenderTarget& t, sf::RenderStates s) const
             }
         }
     }
+
+    (void)s;
 }
 
 void Room::loadTileset()
 {
-    if(!m_tileset.loadFromFile("rc/test.png"))
-        std::cerr << "Erreur : impossible de charger test.png" << std::endl;
-
-
     m_tiles = new Tile**[LAYER];
 
     for(int i = 0; i < LAYER; i++)
@@ -414,15 +597,41 @@ void Room::loadTileset()
 
                 tile.setSprite(r);
 
-                if((tileValue == N_TP_T) || (tileValue == E_TP_T) || (tileValue == S_TP_T) || (tileValue == O_TP_T))
-                    tile.setIsTP(true);
-                if(tileValue == WALL_T)
-                    tile.setBlocking(true);
-                else
-                    tile.setBlocking(false);
+                switch(tileValue)
+                {
+                    case N_TP_T:
+                    case E_TP_T:
+                    case S_TP_T:
+                    case O_TP_T:
+                        tile.setIsTP(true);
+                    break;
 
-                if(tileValue == CHEST_T)
-                    tile.setAnimated(true);
+                    case STAIRS_T:
+                        tile.setIsStairs(true);
+                        tile.setIsTP(true);
+                    break;
+
+                    case WALL_T:
+                    case ZOMBIE_T:
+                        tile.setBlocking(true);
+                    break;
+
+                    case HEALER_T:
+                        tile.setBlocking(true);
+                        tile.setHealer(true);
+                    break;
+
+                    case CHEST_T:
+                        tile.setBlocking(true);
+                        tile.setAnimated(true);
+                        tile.setChest(true);
+                    break;
+
+                    default:
+                        tile.setBlocking(false);
+                    break;
+
+                }
 
                 m_tiles[i][j][k] = tile;
             }

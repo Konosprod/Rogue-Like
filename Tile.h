@@ -16,31 +16,43 @@
 #define STAIRS_T 10
 #define NON_DRAW_T 255
 
-
 class Tile
 {
     public:
         Tile(bool animated = false);
         virtual ~Tile();
 
+        enum TileState{
+    Blocking = 0,
+    TP = 1,
+    Stairs = 2,
+    Animated = 3,
+    Chest = 4,
+    Healer = 5
+};
+
         sf::Sprite getSprite() const;
 
         bool isBlocking();
         bool isTP();
         bool isAnimated();
+        bool isStairs();
+        bool isHealer();
+        bool isChest();
 
         void setBlocking(bool b);
         void setIsTP(bool val);
         void setAnimated(bool val);
+        void setIsStairs(bool val);
         void setSprite(sf::Sprite val);
+        void setHealer(bool b);
+        void setChest(bool b);
 
     protected:
 
     private:
         sf::Sprite m_sprite;
-        bool m_blocking;
-        bool m_animated;
-        bool m_isTP;
+        bool m_properties[Healer+1];
 };
 
 #endif // TILE_H

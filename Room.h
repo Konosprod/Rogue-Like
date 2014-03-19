@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
+#include <string>
 #include <SFML/Graphics.hpp>
 #include "Tile.h"
 
@@ -11,7 +12,7 @@
 #define TILE_WIDTH 32
 #define TILE_HEIGHT 32
 
-enum Dir{Up = 0, Right = 1, Down = 2, Left = 3};
+enum Dir{Up = 0, Right = 1, Down = 2, Left = 3, Default = 4};
 
 class Room : public sf::Drawable, public sf::Transformable
 {
@@ -19,10 +20,13 @@ class Room : public sf::Drawable, public sf::Transformable
         Room(bool connexions[], bool hasChest = false, bool isHeal = false);
         virtual ~Room();
 
+        bool setTileset(std::string filename);
+
         void generateRoom();
         void generateStartRoom();
         void generateHealRoom();
         void generateEventRoom();
+        void generateEndRoom();
 
         int getX() {return m_x;};
         int getY() {return m_y;};
@@ -42,6 +46,8 @@ class Room : public sf::Drawable, public sf::Transformable
         void createChest();
         void createHealer();
         void createEvent();
+        void alterRoom();
+        bool isTPSetable(int i, int pos);
 
     private:
         bool* m_connexions;

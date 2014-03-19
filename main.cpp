@@ -1,38 +1,24 @@
 #include <SFML/Graphics.hpp>
 #include "Map.h"
+#include "Character.h"
 
 int main()
 {
-    Map m;
-    int frame = 0;
-	int lol = 0;
-	sf::Time delay = sf::seconds(0.025f);
-	sf::Clock clock;
-	enum Dir direction = Up;
-	sf::Sprite s;
-	sf::IntRect rect;
-	sf::Texture t;
+    srand(time(NULL));
+	sf::Clock fadeC;
+	sf::Time fadeDelay = sf::seconds(0.005f);
+	bool done = true;
+	sf::RectangleShape fade;
+	Character c("rc/images/test_perso.png");
 
+	fade.setSize(sf::Vector2f(512,512));
 
-	if (!t.loadFromFile("rc/test_perso.png"))
-		std::cout<<"Error! Incorrect input"<<std::endl;
+    sf::RenderWindow window(sf::VideoMode(512, 512, sf::Style::Fullscreen), "BLAH SEA 2");
 
-	s.setTexture(t);
+    c.setWindow(&window);
 
-	rect.width = 32;
-	rect.height = 32;
-
-	rect.left = 0;
-	rect.top = 0;
-
-	s.setTextureRect(rect);
-	s.setPosition(64, 64);
-
-	srand(time(NULL));
-
-    m.generateMap();
-
-    sf::RenderWindow window(sf::VideoMode(512, 512, sf::Style::Fullscreen), "Generate Room");
+    Map m("rc/images/test.png", "rc/musics/test.ogg", 2);
+    m.drawMapDebug();
 
     window.setFramerateLimit(60);
 
@@ -54,295 +40,112 @@ int main()
 
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
         {
-            direction = Down;
-            if(m.isValidMove(s.getPosition().x, s.getPosition().y+32))
+            c.setDirection(Down);
+            if(m.isValidMove(c))
             {
-                if (lol == 0)
-                {
-                    frame = 1;
-                }
-                if(frame == 2 && lol == 3)
-                {
-                    frame = 1;
-                    lol = 0;
-                }
-                else if(frame == 1 && lol == 3)
-                {
-                    frame = 2;
-                    lol = 0;
-                }
-                rect.width = 32;
-                rect.height = 32;
-                rect.left = frame * 32;
-                rect.top = direction * 32;
-                s.setTextureRect(rect);
-                clock.restart();
-                while(clock.getElapsedTime() < delay);
-                s.move(0,4);
-                clock.restart();
-                lol++;
+                c.moveCharacter();
             }
 
-            if(m.isChangingTile(s.getPosition().x, s.getPosition().y+32))
+            if(m.update(c))
             {
-                sf::Vector2i v;
-                m.moveRoom(Down);
-                v = m.getTP(Up);
-                s.setPosition((v.x*32), 32);
+                done = false;
             }
         }
         else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
         {
-            direction = Left;
-            if(m.isValidMove(s.getPosition().x-32, s.getPosition().y))
+            c.setDirection(Left);
+            if(m.isValidMove(c))
             {
-                if (lol == 0)
-                {
-                    frame = 1;
-                }
-                if(frame == 2 && lol == 3)
-                {
-                    frame = 1;
-                    lol = 0;
-                }
-                else if(frame == 1 && lol == 3)
-                {
-                    frame = 2;
-                    lol = 0;
-                }
-                rect.width = 32;
-                rect.height = 32;
-                rect.left = frame * 32;
-                rect.top = direction * 32;
-                s.setTextureRect(rect);
-                clock.restart();
-                while(clock.getElapsedTime() < delay);
-                s.move(-4,0);
-                clock.restart();
-                lol++;
+                c.moveCharacter();
             }
-            if(m.isChangingTile(s.getPosition().x-32, s.getPosition().y))
+
+            if(m.update(c))
             {
-                sf::Vector2i v;
-                m.moveRoom(Left);
-                v = m.getTP(Right);
-                s.setPosition((v.x-1)*32, v.y*32);
+                done = false;
             }
         }
         else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
         {
-            direction = Up;
-            if(m.isValidMove(s.getPosition().x, s.getPosition().y-32))
+            c.setDirection(Up);
+            if(m.isValidMove(c))
             {
-                if (lol == 0)
-                {
-                    frame = 1;
-                }
-                if(frame == 2 && lol == 3)
-                {
-                    frame = 1;
-                    lol = 0;
-                }
-                else if(frame == 1 && lol == 3)
-                {
-                    frame = 2;
-                    lol = 0;
-                }
-                rect.width = 32;
-                rect.height = 32;
-                rect.left = frame * 32;
-                rect.top = direction * 32;
-                s.setTextureRect(rect);
-                clock.restart();
-                while(clock.getElapsedTime() < delay);
-                s.move(0,-4);
-                clock.restart();
-                lol++;
+                c.moveCharacter();
             }
 
-            if(m.isChangingTile(s.getPosition().x, s.getPosition().y-32))
+            if(m.update(c))
             {
-                sf::Vector2i v;
-                m.moveRoom(Up);
-                v = m.getTP(Down);
-                s.setPosition(v.x*32, (v.y-1)*32);
+                done = false;
             }
         }
         else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
         {
-            direction = Right;
-            if(m.isValidMove(s.getPosition().x+32, s.getPosition().y))
+            c.setDirection(Right);
+            if(m.isValidMove(c))
             {
-                if (lol == 0)
-                {
-                    frame = 1;
-                }
-                if(frame == 2 && lol == 3)
-                {
-                    frame = 1;
-                    lol = 0;
-                }
-                else if(frame == 1 && lol == 3)
-                {
-                    frame = 2;
-                    lol = 0;
-                }
-                rect.width = 32;
-                rect.height = 32;
-                rect.left = frame * 32;
-                rect.top = direction * 32;
-                s.setTextureRect(rect);
-                clock.restart();
-                while(clock.getElapsedTime() < delay);
-                s.move(4,0);
-                clock.restart();
-                lol++;
+                c.moveCharacter();
             }
 
-            if(m.isChangingTile(s.getPosition().x+32, s.getPosition().y))
+            if(m.update(c))
             {
-                sf::Vector2i v;
-                m.moveRoom(Right);
-                v = m.getTP(Left);
-                s.setPosition((v.x+1)*32, v.y*32);
+                done = false;
+            }
+        }
+        else if(sf::Keyboard::isKeyPressed(sf::Keyboard::R))
+        {
+            if(c.getState() == Run)
+            {
+                c.setState(Walk);
+            }
+            else
+            {
+                c.setState(Run);
+            }
+        }
+        else if(sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+        {
+            switch(m.checkEvent(c))
+            {
+                case Healer:
+                    c.healParty();
+                break;
+
+                case Chest:
+                    m.openChest();
+                break;
+
+                default:
+                break;
             }
         }
         else
         {
-            rect.left = 0;
-            rect.width = 32;
-            rect.height = 32;
-            rect.top = direction * 32;
-            s.setTextureRect(rect);
+            c.setDirection(Default);
+            c.moveCharacter();
         }
-        float y = s.getPosition().y;
-        float x = s.getPosition().x;
-        while (((int)y%32 != 0) || ((int)x%32 != 0))
+
+        int alpha = 255;
+        while(!done)
         {
-            if (direction == Up)
-            {
-                if (lol == 0)
-                {
-                    frame = 1;
-                }
-                if(frame == 2 && lol == 3)
-                {
-                    frame = 1;
-                    lol = 0;
-                }
-                else if(frame == 1 && lol == 3)
-                {
-                    frame = 2;
-                    lol = 0;
-                }
-                rect.width = 32;
-                rect.height = 32;
-                rect.left = frame * 32;
-                rect.top = direction * 32;
-                s.setTextureRect(rect);
-                while(clock.getElapsedTime() < delay);
-                s.move(0,-4);
-                clock.restart();
-                lol++;
-            }
-            else if (direction == Right)
-            {
-                if (lol == 0)
-                {
-                    frame = 1;
-                }
-                if(frame == 2 && lol == 3)
-                {
-                    frame = 1;
-                    lol = 0;
-                }
-                else if(frame == 1 && lol == 3)
-                {
-                    frame = 2;
-                    lol = 0;
-                }
-                rect.width = 32;
-                rect.height = 32;
-                rect.left = frame * 32;
-                rect.top = direction * 32;
-                s.setTextureRect(rect);
-                clock.restart();
-                while(clock.getElapsedTime() < delay);
-                s.move(4,0);
-                clock.restart();
-                lol++;
-            }
-            else if (direction == Down)
-            {
-                if (lol == 0)
-                {
-                    frame = 1;
-                }
-                if(frame == 2 && lol == 3)
-                {
-                    frame = 1;
-                    lol = 0;
-                }
-                else if(frame == 1 && lol == 3)
-                {
-                    frame = 2;
-                    lol = 0;
-                }
-                rect.width = 32;
-                rect.height = 32;
-                rect.left = frame * 32;
-                rect.top = direction * 32;
-                s.setTextureRect(rect);
-                clock.restart();
-                while(clock.getElapsedTime() < delay);
-                s.move(0,4);
-                clock.restart();
-                lol++;
-            }
-            else // direction == Left
-            {
-                if (lol == 0)
-                {
-                    frame = 1;
-                }
-                if(frame == 2 && lol == 3)
-                {
-                    frame = 1;
-                    lol = 0;
-                }
-                else if(frame == 1 && lol == 3)
-                {
-                    frame = 2;
-                    lol = 0;
-                }
-                rect.width = 32;
-                rect.height = 32;
-                rect.left = frame * 32;
-                rect.top = direction * 32;
-                s.setTextureRect(rect);
-                clock.restart();
-                while(clock.getElapsedTime() < delay);
-                s.move(-4,0);
-                clock.restart();
-                lol++;
-            }
-
-            y = s.getPosition().y;
-            x = s.getPosition().x;
-
-            window.draw(m);
-            window.draw(s);
-            window.display();
+            while(fadeC.getElapsedTime() < fadeDelay);
+            fade.setFillColor(sf::Color(0, 0, 0, alpha));
+            fadeC.restart();
+            alpha-=17;
             window.clear();
+            window.draw(m);
+            window.draw(c);
+            window.draw(fade);
+            window.display();
+            if(alpha == 0)
+            {
+                done = true;
+            }
         }
-
         window.clear();
         window.draw(m);
-        window.draw(s);
+        window.draw(c);
         window.display();
     }
 
     return 0;
 }
-
 

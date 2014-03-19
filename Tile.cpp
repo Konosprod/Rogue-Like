@@ -1,9 +1,11 @@
 #include "Tile.h"
 
-Tile::Tile(bool animated) : m_animated(animated)
+Tile::Tile(bool animated)
 {
-    m_blocking = false;
-    m_isTP = false;
+    m_properties[Blocking] = false;
+    m_properties[TP] = false;
+    m_properties[Stairs] = false;
+    m_properties[Animated] = animated;
 }
 
 Tile::~Tile()
@@ -28,32 +30,62 @@ sf::Sprite Tile::getSprite() const
 
 bool Tile::isBlocking()
 {
-    return m_blocking;
+    return m_properties[Blocking];
 }
 
 bool Tile::isTP()
 {
-    return m_isTP;
+    return m_properties[TP];
 }
 
 bool Tile::isAnimated()
 {
-    return m_animated;
+    return m_properties[Animated];
+}
+
+bool Tile::isStairs()
+{
+    return m_properties[Stairs];
+}
+
+bool Tile::isHealer()
+{
+    return m_properties[Healer];
+}
+
+bool Tile::isChest()
+{
+    return m_properties[Chest];
 }
 
 void Tile::setBlocking(bool b)
 {
-    m_blocking = b;
+    m_properties[Blocking] = b;
 }
 
 void Tile::setIsTP(bool b)
 {
-    m_isTP = b;
+    m_properties[TP] = b;
+}
+
+void Tile::setIsStairs(bool b)
+{
+    m_properties[Stairs] = b;
 }
 
 
 void Tile::setAnimated(bool val)
 {
-    m_animated = val;
+    m_properties[Animated] = val;
+}
+
+void Tile::setChest(bool b)
+{
+    m_properties[Chest] = b;
+}
+
+void Tile::setHealer(bool b)
+{
+    m_properties[Healer];
 }
 
