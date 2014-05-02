@@ -1,0 +1,10 @@
+character A rc/images/tileset.png 160 160
+character B rc/images/tileset1.png 192 192
+print_text blah "Le personnage humain va se déplacer, attention les yeux !"
+move_character A 224 224
+print_text blah "C'est maintenant au tour de notre cher zombie o/."
+move_character B 256 256
+print_text blah "Ce moonwalk me donne envie de changer de musique tient o>."
+music_play rc/musics/testogg.ogg
+print_text blah "Instalok oui, j'avais que ca sous la main pour les tests xD."
+print_text blah "Vous aimez ? Si nous continuons bien le développement, bientôt une beta dans vos PC !"

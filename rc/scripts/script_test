@@ -1,0 +1,5 @@
+print_text blah "Bonsoir je suis un exemple de fonctionnement des boites de dialogues."
+print_text blah "Juste après je vais vous faire une demonstration d'une pseudo cinématique."
+print_text blah "Je vous spoil pas, ca devrait être pas mal, certains riront peut être"
+print_text blah "Here we go ! La cinématique sera chargée via notre langage de script, si c'est pas beau ca 8D."
+load_script rc/scripts/cinematique_example
