@@ -17,8 +17,10 @@ class Character : public sf::Drawable, public sf::Transformable
         Character(std::string tileset);
         virtual ~Character();
 
-        void setTexture(std::string filename);
+
         void moveCharacter();
+        bool moveTo(int, int);
+        void healParty();
 
         sf::Vector2f getPosition();
         sf::Vector2i getBounds();
@@ -26,11 +28,10 @@ class Character : public sf::Drawable, public sf::Transformable
         Dir getDirection() {return m_dir;};
 
         void setPosition(int x, int y);
+        void setTexture(std::string filename);
         void setWindow(sf::RenderWindow* t) {m_window = t;};
         void setState(State s){m_state = s;};
-        void setDirection(Dir d) {if(m_dir == Default){m_olddir = m_dir;}m_dir=d;};
-
-        void healParty();
+        void setDirection(Dir d);
 
     protected:
 

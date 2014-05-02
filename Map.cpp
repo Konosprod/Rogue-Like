@@ -4,15 +4,13 @@
 
 **/
 
-Map::Map(std::string tilesetFilename, std::string soundFilename, int floorMax) : m_tileset(tilesetFilename), m_floorMax(floorMax)
+Map::Map(SoundManager* soundManager, std::string tilesetFilename, int floorMax) : m_tileset(tilesetFilename),
+                                                                                  m_floorMax(floorMax),
+                                                                                  m_soundManager(soundManager)
 {
     m_floor = 0;
-    //m_music.openFromFile(soundFilename);
-    //m_music.setLoop(true);
-    //m_music.play();
     m_done = false;
     generateMap();
-    (void)soundFilename;
 }
 
 Map::~Map()
@@ -123,6 +121,50 @@ bool Map::update(Character& c)
     return fade;
 }
 
+void Map::updateZombie(Character& c)
+{
+    int ymin = 0;
+    int xmin = 0;
+    int xmax = 0;
+    int ymax = 0;
+
+    switch(c.getDirection())
+    {
+        case Up:
+        xmin = ((int)c.getPosition().x)/32;
+        ymin = ((int)c.getPosition().y-1)/32;
+        xmax = ((int)c.getPosition().x + c.getBounds().x)/32;
+        ymax = ((int)c.getPosition().y-1)/32;
+        break;
+
+        case Right:
+        xmin = ((int)c.getPosition().x + c.getBounds().x+1)/32;
+        ymin = ((int)c.getPosition().y)/32;
+        xmax = ((int)c.getPosition().x + c.getBounds().x+1)/32;
+        ymax = ((int)c.getPosition().y + c.getBounds().y)/32;
+        break;
+
+        case Down:
+        xmin = ((int)c.getPosition().x)/32;
+        ymin = ((int)c.getPosition().y + c.getBounds().y+1)/32;
+        xmax = ((int)c.getPosition().x + c.getBounds().x)/32;
+        ymax = ((int)c.getPosition().y + c.getBounds().y+1)/32;
+        break;
+
+        case Left:
+        xmin = ((int)c.getPosition().x-1)/32;
+        ymin = ((int)c.getPosition().y)/32;
+        xmax = ((int)c.getPosition().x-1)/32;
+        ymax = ((int)c.getPosition().y + c.getBounds().y)/32;
+        break;
+
+        default:
+        break;
+    }
+
+    m_rooms[m_currentPos.y][m_currentPos.x]->deleteZombie(xmin, ymin, xmax, ymax);
+}
+
 void Map::freeTab(int** t)
 {
     for(unsigned int i = 0; i < SIZE_MAX_TAB; i++)
@@ -174,6 +216,11 @@ void Map::moveRoom(Dir d)
     else
     {
         m_currentPos.x--;
+    }
+
+    if(m_tab[m_currentPos.y][m_currentPos.x] == MOB_ROOM)
+    {
+        m_rooms[m_currentPos.y][m_currentPos.x]->update();
     }
 }
 
@@ -230,7 +277,7 @@ void Map::createRooms()
                 {
                     m_rooms[j][i]->generateEndRoom();
                 }
-                else
+                else if(m_tab[j][i] == MOB_ROOM)
                 {
                     m_rooms[j][i]->generateRoom();
                 }
@@ -241,12 +288,64 @@ void Map::createRooms()
     m_currentPos = m_randomizer.findStart();
 }
 
-void Map::currentRoom()
+Point Map::currentRoom()
 {
-    std::cout << "currentRoom : y : " << m_currentPos.y << " x : " << m_currentPos.x << std::endl;
+    return m_currentPos;
 }
 
 bool Map::isValidMove(Character& c)
+{
+    int ymin = 0;
+    int xmin = 0;
+    int xmax = 0;
+    int ymax = 0;
+
+    switch(c.getDirection())
+    {
+        case Up:
+        xmin = ((int)c.getPosition().x)/32;
+        ymin = ((int)c.getPosition().y-1)/32;
+        xmax = ((int)c.getPosition().x + c.getBounds().x)/32;
+        ymax = ((int)c.getPosition().y-1)/32;
+        break;
+
+        case Right:
+        xmin = ((int)c.getPosition().x + c.getBounds().x+1)/32;
+        ymin = ((int)c.getPosition().y)/32;
+        xmax = ((int)c.getPosition().x + c.getBounds().x+1)/32;
+        ymax = ((int)c.getPosition().y + c.getBounds().y)/32;
+        break;
+
+        case Down:
+        xmin = ((int)c.getPosition().x)/32;
+        ymin = ((int)c.getPosition().y + c.getBounds().y+1)/32;
+        xmax = ((int)c.getPosition().x + c.getBounds().x)/32;
+        ymax = ((int)c.getPosition().y + c.getBounds().y+1)/32;
+        break;
+
+        case Left:
+        xmin = ((int)c.getPosition().x-1)/32;
+        ymin = ((int)c.getPosition().y)/32;
+        xmax = ((int)c.getPosition().x-1)/32;
+        ymax = ((int)c.getPosition().y + c.getBounds().y)/32;
+        break;
+
+        default:
+            return false;
+        break;
+    }
+
+    if((((c.getDirection() == Up) || (c.getDirection() == Down)) && ((int)c.getPosition().x%32 == 0)) ||
+       (((c.getDirection() == Left) || (c.getDirection() == Right)) && ((int)c.getPosition().y%32 == 0)))
+    {
+        return !(m_rooms[m_currentPos.y][m_currentPos.x]->getTile(xmin, ymin).isBlocking());
+    }
+
+    return !((m_rooms[m_currentPos.y][m_currentPos.x]->getTile(xmin, ymin).isBlocking()) ||
+             (m_rooms[m_currentPos.y][m_currentPos.x]->getTile(xmax, ymax).isBlocking()));
+}
+
+bool Map::isEngagingFight(Character& c)
 {
     int ymin = 0;
     int xmin = 0;
@@ -290,11 +389,11 @@ bool Map::isValidMove(Character& c)
     if((((c.getDirection() == Up) || (c.getDirection() == Down)) && ((int)c.getPosition().x%32 == 0)) ||
        (((c.getDirection() == Left) || (c.getDirection() == Right)) && ((int)c.getPosition().y%32 == 0)))
     {
-        return !(m_rooms[m_currentPos.y][m_currentPos.x]->getTile(xmin, ymin).isBlocking());
+        return (m_rooms[m_currentPos.y][m_currentPos.x]->getTile(xmin, ymin).isZombie());
     }
 
-    return !((m_rooms[m_currentPos.y][m_currentPos.x]->getTile(xmin, ymin).isBlocking()) ||
-             (m_rooms[m_currentPos.y][m_currentPos.x]->getTile(xmax, ymax).isBlocking()));
+    return m_rooms[m_currentPos.y][m_currentPos.x]->getTile(xmin, ymin).isZombie() ||
+           m_rooms[m_currentPos.y][m_currentPos.x]->getTile(xmax, ymax).isZombie();
 }
 
 bool Map::isChangingTile(int x, int y)
@@ -325,7 +424,7 @@ void Map::drawMapDebug()
     {
         for (unsigned int j=0; j<SIZE_MAX_TAB; j++)
         {
-            if(m_tab[i][j] == 1)
+            if(m_tab[i][j] == MOB_ROOM)
             {
                 std::cout << "*";
             }

@@ -29,7 +29,8 @@ class Tile
             Animated = 3,
             Chest = 4,
             Healer = 5,
-            StateMax = 6
+            Zombie = 6,
+            StateMax = 7
         };
 
         sf::Sprite getSprite() const;
@@ -40,6 +41,7 @@ class Tile
         bool isStairs();
         bool isHealer();
         bool isChest();
+        bool isZombie();
 
         void setBlocking(bool b);
         void setIsTP(bool val);
@@ -48,6 +50,7 @@ class Tile
         void setSprite(sf::Sprite val);
         void setHealer(bool b);
         void setChest(bool b);
+        void setZombie(bool b);
 
     protected:
 

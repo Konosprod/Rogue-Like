@@ -1,37 +1,49 @@
 #include <SFML/Graphics.hpp>
 #include "Map.h"
 #include "Character.h"
+#include "Interpreter.h"
+#include "SoundManager.h"
 
 enum GameState{
     Running,
-    Pause
+    Fight,
+    Pause,
+    Event
 };
 
 int main()
 {
     srand(time(NULL));
 
-	sf::Clock fadeC;
-	sf::Time fadeDelay = sf::seconds(0.005f);
-	bool done = true;
-	sf::RectangleShape fade;
-	Character c("rc/images/test_perso.png");
-	sf::RenderWindow window(sf::VideoMode(512, 512, sf::Style::Fullscreen), "BLAH SEA 2");
-	sf::Texture pauseScreenTexture;
-	sf::Sprite pauseScreen;
-	GameState state = Running;
+    sf::Clock fadeC;
+    SoundManager soundManager("rc/musics/test.ogg", true);
+    sf::Time fadeDelay = sf::seconds(0.005f);
+    bool done = true;
+    sf::RectangleShape fade;
+    Character c("rc/images/test_perso.png");
+    sf::RenderWindow window(sf::VideoMode(1024, 768, sf::Style::Fullscreen), "Badass Lengendary Awesome Heroes : Squad Extrem Adventure 2", sf::Style::Close);
+    sf::View view(sf::FloatRect(0, 0, window.getSize().x, window.getSize().y));
+    view.setViewport(sf::FloatRect(0.25f, 0.25f, 1, 1));
+    window.setView(view);
+    sf::Texture pauseScreenTexture;
+    sf::Sprite pauseScreen;
+    GameState state = Running;
+    GameState oldState = state;
 
-	fade.setSize(sf::Vector2f(512,512));
+    fade.setSize(sf::Vector2f(view.getSize().x,view.getSize().y));
 
     pauseScreenTexture.loadFromFile("rc/images/paused.png");
     pauseScreen.setTexture(pauseScreenTexture);
 
     c.setWindow(&window);
+    Interpreter i(&window, &soundManager);
 
-    Map m("rc/images/test.png", "rc/musics/test.ogg", 2);
+    Map m(&soundManager, "rc/images/test.png", 2);
     m.drawMapDebug();
 
     window.setFramerateLimit(60);
+
+    soundManager.play();
 
     while (window.isOpen())
     {
@@ -42,6 +54,99 @@ int main()
             {
                 case sf::Event::Closed:
                     window.close();
+                break;
+
+                case sf::Event::Resized:
+                {
+                    view.setSize(event.size.width, event.size.height);
+                    view.setViewport(sf::FloatRect(0.25f, 0.25f, 1, 1));
+                    window.setView(view);
+                }
+                break;
+
+                case sf::Event::LostFocus:
+                    oldState = state;
+                    state = Pause;
+                    soundManager.pause();
+                break;
+
+                case sf::Event::GainedFocus:
+                    state = oldState;
+                    soundManager.play();
+                break;
+
+                case sf::Event::KeyReleased:
+                    if(event.key.code == sf::Keyboard::R)
+                    {
+                        if(state == Running)
+                        {
+                            if(c.getState() == Run)
+                            {
+                                c.setState(Walk);
+                            }
+                            else
+                            {
+                                c.setState(Run);
+                            }
+                        }
+                    }
+
+                    if(event.key.code == sf::Keyboard::P)
+                    {
+                        if(state == Running)
+                        {
+                            state = Pause;
+                            soundManager.pause();
+                            soundManager.stopFootsteps();
+                        }
+                        else
+                        {
+                            state = Running;
+                            soundManager.play();
+                        }
+                    }
+
+                    if(event.key.code == sf::Keyboard::A)
+                    {
+                        if(state == Running)
+                        {
+                            switch(m.checkEvent(c))
+                            {
+                                case Healer:
+                                    c.healParty();
+                                break;
+
+                                case Chest:
+                                    m.openChest();
+                                break;
+
+                                default:
+                                break;
+                            }
+                        }
+
+                        if(state == Fight)
+                        {
+                            state = Running;
+                            m.updateZombie(c);
+                        }
+
+                        if(state == Event)
+                        {
+                            i.nextDialog();
+                        }
+                    }
+
+                    if(event.key.code == sf::Keyboard::M)
+                    {
+                        soundManager.stop();
+                    }
+
+                    if(event.key.code == sf::Keyboard::E)
+                    {
+                        state = Event;
+                        i.loadScript("rc/scripts/script_test");
+                    }
                 break;
 
                 default:
@@ -57,12 +162,15 @@ int main()
                 if(m.isValidMove(c))
                 {
                     c.moveCharacter();
+                    soundManager.playFootsteps();
+                }
+                else if(m.isEngagingFight(c))
+                {
+                    soundManager.stopFootsteps();
+                    state = Fight;
                 }
 
-                if(m.update(c))
-                {
-                    done = false;
-                }
+                done = !(m.update(c));
             }
         }
         else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
@@ -73,12 +181,17 @@ int main()
                 if(m.isValidMove(c))
                 {
                     c.moveCharacter();
+                    soundManager.playFootsteps();
                 }
 
-                if(m.update(c))
+                else if(m.isEngagingFight(c))
                 {
-                    done = false;
+                    soundManager.stopFootsteps();
+                    state = Fight;
                 }
+
+
+                done = !(m.update(c));
             }
         }
         else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
@@ -89,12 +202,16 @@ int main()
                 if(m.isValidMove(c))
                 {
                     c.moveCharacter();
+                    soundManager.playFootsteps();
+                }
+                else if(m.isEngagingFight(c))
+                {
+                    soundManager.stopFootsteps();
+                    state = Fight;
                 }
 
-                if(m.update(c))
-                {
-                    done = false;
-                }
+
+                done = !(m.update(c));
             }
         }
         else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
@@ -105,56 +222,15 @@ int main()
                 if(m.isValidMove(c))
                 {
                     c.moveCharacter();
+                    soundManager.playFootsteps();
+                }
+                else if(m.isEngagingFight(c))
+                {
+                    soundManager.stopFootsteps();
+                    state = Fight;
                 }
 
-                if(m.update(c))
-                {
-                    done = false;
-                }
-            }
-        }
-        else if(sf::Keyboard::isKeyPressed(sf::Keyboard::R))
-        {
-            if(state == Running)
-            {
-                if(c.getState() == Run)
-                {
-                    c.setState(Walk);
-                }
-                else
-                {
-                    c.setState(Run);
-                }
-            }
-        }
-        else if(sf::Keyboard::isKeyPressed(sf::Keyboard::P))
-        {
-            if(state == Running)
-            {
-                state = Pause;
-            }
-            else
-            {
-                state = Running;
-            }
-        }
-        else if(sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-        {
-            if(state == Running)
-            {
-                switch(m.checkEvent(c))
-                {
-                    case Healer:
-                        c.healParty();
-                    break;
-
-                    case Chest:
-                        m.openChest();
-                    break;
-
-                    default:
-                    break;
-                }
+                done = !(m.update(c));
             }
         }
         else
@@ -163,12 +239,14 @@ int main()
             {
                 c.setDirection(Default);
                 c.moveCharacter();
+                soundManager.stopFootsteps();
             }
         }
 
         int alpha = 255;
         while(!done)
         {
+            soundManager.playDoor();
             while(fadeC.getElapsedTime() < fadeDelay);
             fade.setFillColor(sf::Color(0, 0, 0, alpha));
             fadeC.restart();
@@ -186,7 +264,7 @@ int main()
 
         window.clear();
 
-        if(state == Running)
+        if(state == Running || state == Fight)
         {
             window.draw(m);
             window.draw(c);
@@ -194,6 +272,21 @@ int main()
         if(state == Pause)
         {
             window.draw(pauseScreen);
+        }
+        if(state == Event)
+        {
+            window.draw(m);
+
+            if(i.isEmpty())
+            {
+                i.clear();
+                window.draw(c);
+                state = Running;
+            }
+            else
+            {
+                i.update();
+            }
         }
 
         window.display();

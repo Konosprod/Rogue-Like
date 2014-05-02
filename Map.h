@@ -7,6 +7,7 @@
 #include "Room.h"
 #include "Character.h"
 #include "MapRandomizer.h"
+#include "SoundManager.h"
 
 enum Event{
     None,
@@ -17,17 +18,20 @@ enum Event{
 class Map : public sf::Drawable, public sf::Transformable
 {
     public:
-        Map(std::string tileset, std::string music, int floorMax);
+        Map(SoundManager* soundManager, std::string tileset, int floorMax);
         virtual ~Map();
+
         void moveRoom(Dir d);
         void drawMapDebug();
+        void updateZombie(Character& c);
 
         bool isValidMove(Character& c);
+        bool isEngagingFight(Character& c);
         bool isChangingTile(int x, int y);
         bool isChangingFloor(int x, int y);
 
         sf::Vector2i getTP(Dir d);
-        void currentRoom();
+        Point currentRoom();
 
         void openChest();
         bool update(Character& c);
@@ -50,7 +54,7 @@ class Map : public sf::Drawable, public sf::Transformable
         Room*** m_rooms;
         Point m_currentPos;
         MapRandomizer m_randomizer;
-        //sf::Music m_music;
+        SoundManager* m_soundManager;
         bool m_done;
 
 

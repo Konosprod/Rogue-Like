@@ -3,12 +3,13 @@
 Room::Room(bool* connexions, bool hasChest, bool isHeal) :
     m_connexions(connexions), m_hasChest(hasChest), m_isHeal(isHeal)
 {
-
+    m_seen = false;
 }
 
 Room::~Room()
 {
     deleteTab();
+    freeTileset();
     delete [] m_connexions;
 }
 
@@ -261,14 +262,10 @@ void Room::deleteTab()
         for(unsigned int j = 0; j < m_y; j++)
         {
             delete[] m_tab[i][j];
-            delete[] m_tiles[i][j];
         }
 
         delete[] m_tab[i];
-        delete[] m_tiles[i];
     }
-
-    delete[] m_tiles;
     delete[] m_tab;
 }
 
@@ -281,7 +278,7 @@ void Room::createChest()
         int x = rand()%(m_x-4) + 2;
         int y = rand()%(m_y-4) + 2;
 
-        if(m_tab[1][y][x] == 0)
+        if(m_tab[1][y][x] == EMPTY_T && m_tab[0][y][x] == FLOOR_T)
         {
             m_tab[1][y][x] = CHEST_T;
             isPlaced = true;
@@ -332,6 +329,7 @@ void Room::generateStartRoom()
     createTP();
 
     loadTileset();
+    m_seen = true;
 }
 
 void Room::generateEndRoom()
@@ -341,39 +339,40 @@ void Room::generateEndRoom()
 
 void Room::alterRoom()
 {
-    int choice = rand()%4;
+    int choice = rand()%5;
     int alterX = rand()%3 + 4;
     int alterY = rand()%3 + 4;
+
     int borderX = m_x-1;
     int borderY = m_y-1;
 
     switch(choice)
     {
         case 0:
-            for(int k = 0; k < LAYER; k++)
+            for(int i=0; i<alterX; i++)
             {
-                for(int i = 0; i < alterX; i++)
+                m_tab[1][alterY][i] = 2;
+            }
+            for(int j=0; j<alterY; j++)
+            {
+                m_tab[1][j][alterX] = 2;
+            }
+            m_tab[1][alterY][alterX] = 2;
+
+            for(int k=0; k<LAYER; k++)
+            {
+                for(int i=0; i<alterX; i++)
                 {
-                    for(int j = 0; j < alterY; j++)
+                    for(int j=0; j<alterY; j++)
                     {
                         m_tab[k][j][i] = 0;
                     }
                 }
             }
-            for(int i = 0; i < alterY; i++)
-            {
-                m_tab[1][i][alterX] = 2;
-            }
-            for(int i = 0; i < alterX; i++)
-            {
-                m_tab[1][alterY][i] = 2;
-            }
-
-            m_tab[1][alterY][alterX] = 2;
         break;
 
         case 1:
-            for(int i = borderX; i > borderX - alterX; i--)
+            for(int i=borderX; i>borderX-alterX; i--)
             {
                 m_tab[1][alterY][i] = 2;
             }
@@ -381,8 +380,10 @@ void Room::alterRoom()
             {
                 m_tab[1][j][borderX-alterX] = 2;
             }
+            m_tab[1][alterY][borderX-alterX] = 2;
 
-            for(int k = 0; k < LAYER; k++)
+
+            for(int k=0; k<LAYER; k++)
             {
                 for(int i=borderX; i>borderX-alterX; i--)
                 {
@@ -392,23 +393,21 @@ void Room::alterRoom()
                     }
                 }
             }
-
-            m_tab[1][alterY][borderX-alterX] = 2;
         break;
 
         case 2:
-             for(int i=0; i<alterX; i++)
-             {
-                 m_tab[1][borderY-alterY][i] = 2;
-             }
+            for(int i=0; i<alterX; i++)
+            {
+                m_tab[1][borderY-alterY][i] = 2;
+            }
+            for(int j=borderY; j>borderY-alterY; j--)
+            {
+                m_tab[1][j][alterX] = 2;
+            }
+            m_tab[1][borderY-alterY][alterX] = 2;
 
-             for(int j=borderY; j>borderY-alterY; j--)
-             {
-                 m_tab[1][j][alterX] = 2;
-             }
-
-             for(int k = 0; k < LAYER; k++)
-             {
+            for(int k=0; k<LAYER; k++)
+            {
                 for(int i=0; i<alterX; i++)
                 {
                     for(int j=borderY; j>borderY-alterY; j--)
@@ -416,9 +415,7 @@ void Room::alterRoom()
                         m_tab[k][j][i] = 0;
                     }
                 }
-             }
-
-             m_tab[1][borderY-alterY][alterX] = 2;
+            }
         break;
 
         case 3:
@@ -430,25 +427,113 @@ void Room::alterRoom()
             {
                 m_tab[1][j][borderX-alterX] = 2;
             }
+            m_tab[1][borderY-alterY][borderX-alterX] = 2;
 
-            for(int k = 0; k < LAYER; k++)
+            for(int k=0; k<LAYER; k++)
             {
                 for(int i=borderX; i>borderX-alterX; i--)
                 {
                     for(int j=borderY; j>borderY-alterY; j--)
                     {
-                        m_tab[k][j][i] = 0;
+                    m_tab[k][j][i] = 0;
                     }
                 }
             }
+        break;
 
-            m_tab[1][borderY-alterY][borderX-alterX] = 2;
+        case 4:
+        {
+            int scaleX = rand()%3 + 2;
+            int scaleY = rand()%3 + 2;
+            int x = borderX/2 - 1;
+            int y = borderY/2 - 1;
 
+            for(int i = x; i <= x+scaleX; i++)
+            {
+                m_tab[1][y][i] = 2;
+                m_tab[1][y+scaleY][i] = 2;
+            }
+
+            for(int j = y; j <= y+scaleY; j++)
+            {
+                m_tab[1][j][x] = 2;
+                m_tab[1][j][x+scaleX] = 2;
+            }
+
+            for(int k = 0; k < LAYER; k++)
+            {
+                for(int i = x+1; i < x+scaleX; i++)
+                {
+                    for(int j = y+1; j < y+scaleY; j++)
+                    {
+                        m_tab[k][j][i] = 0;
+                    }
+                }
+
+            }
+        }
         break;
 
         default:
         break;
     }
+}
+
+void Room::freeTileset()
+{
+    for(int i = 0; i < LAYER; i++)
+    {
+        for(unsigned int j = 0; j < m_y; j++)
+        {
+            delete[] m_tiles[i][j];
+        }
+
+        delete[] m_tiles[i];
+    }
+
+    delete[] m_tiles;
+}
+
+void Room::updateTileset()
+{
+    freeTileset();
+    loadTileset();
+}
+
+void Room::deleteZombie(int xmin, int ymin, int xmax, int ymax)
+{
+    if(m_tab[1][ymin][xmin] == ZOMBIE_T)
+    {
+        m_tab[1][ymin][xmin] = EMPTY_T;
+    }
+    else if(m_tab[1][ymax][xmax] == ZOMBIE_T)
+    {
+        m_tab[1][ymax][xmax] = EMPTY_T;
+    }
+
+    freeTileset();
+    loadTileset();
+}
+
+void Room::clearMob()
+{
+    for(unsigned int i = 0; i < m_x; i++)
+    {
+        for(unsigned int j = 0; j < m_y; j++)
+        {
+            if(m_tab[1][j][i] == ZOMBIE_T)
+            {
+                m_tab[1][j][i] = EMPTY_T;
+            }
+        }
+    }
+}
+
+void Room::update()
+{
+    //clearMob();
+    createMob();
+    updateTileset();
 }
 
 void Room::generateRoom()
@@ -474,7 +559,7 @@ void Room::generateRoom()
     createWall();
     alterRoom();
     createTP();
-    createMob();
+    //createMob();
 
 
     if(m_hasChest)
@@ -612,8 +697,12 @@ void Room::loadTileset()
                     break;
 
                     case WALL_T:
+                        tile.setBlocking(true);
+                    break;
+
                     case ZOMBIE_T:
                         tile.setBlocking(true);
+                        tile.setZombie(true);
                     break;
 
                     case HEALER_T:

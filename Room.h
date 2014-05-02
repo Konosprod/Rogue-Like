@@ -27,6 +27,8 @@ class Room : public sf::Drawable, public sf::Transformable
         void generateHealRoom();
         void generateEventRoom();
         void generateEndRoom();
+        void update();
+        void deleteZombie(int xmin, int ymin, int xmax, int ymax);
 
         int getX() {return m_x;};
         int getY() {return m_y;};
@@ -47,6 +49,9 @@ class Room : public sf::Drawable, public sf::Transformable
         void createHealer();
         void createEvent();
         void alterRoom();
+        void clearMob();
+        void updateTileset();
+        void freeTileset();
         bool isTPSetable(int i, int pos);
 
     private:
@@ -56,6 +61,7 @@ class Room : public sf::Drawable, public sf::Transformable
         bool m_hasChest;
         bool m_isHeal;
         char*** m_tab;
+        bool m_seen;
 
         sf::Texture m_tileset;
         sf::VertexArray m_vertices;

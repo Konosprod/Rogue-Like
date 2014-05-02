@@ -6,6 +6,7 @@
 #include "Room.h"
 
 #define SIZE_MAX_TAB 20
+#define MOB_ROOM 1
 #define START_ROOM 2
 #define EVENT_ROOM 3
 #define CHEST_ROOM 4
@@ -58,5 +59,7 @@ class MapRandomizer
         int m_floor;
         int m_floorMax;
 };
+
+int absValue (int n);
 
 #endif // MAPRANDOMIZER_H

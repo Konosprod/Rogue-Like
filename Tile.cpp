@@ -2,9 +2,11 @@
 
 Tile::Tile(bool animated)
 {
-    m_properties[Blocking] = false;
-    m_properties[TP] = false;
-    m_properties[Stairs] = false;
+    for(int i = 0; i < StateMax; i++)
+    {
+        m_properties[i] = false;
+    }
+
     m_properties[Animated] = animated;
 }
 
@@ -58,6 +60,11 @@ bool Tile::isChest()
     return m_properties[Chest];
 }
 
+bool Tile::isZombie()
+{
+    return m_properties[Zombie];
+}
+
 void Tile::setBlocking(bool b)
 {
     m_properties[Blocking] = b;
@@ -73,7 +80,6 @@ void Tile::setIsStairs(bool b)
     m_properties[Stairs] = b;
 }
 
-
 void Tile::setAnimated(bool val)
 {
     m_properties[Animated] = val;
@@ -86,6 +92,11 @@ void Tile::setChest(bool b)
 
 void Tile::setHealer(bool b)
 {
-    m_properties[Healer];
+    m_properties[Healer] = b;
+}
+
+void Tile::setZombie(bool b)
+{
+    m_properties[Zombie] = b;
 }
 

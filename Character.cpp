@@ -15,6 +15,7 @@ Character::Character(std::string tileset)
 	m_alternate = 0;
 	m_frame = 0;
 	m_dir = Down;
+	m_olddir = Down;
 	m_state = Walk;
 }
 
@@ -47,6 +48,38 @@ sf::Vector2i Character::getBounds()
 void Character::healParty()
 {
     std::cout << "Heal party" << std::endl;
+}
+
+bool Character::moveTo(int xWanted, int yWanted)
+{
+    int x = m_sprite.getPosition().x;
+    int y = m_sprite.getPosition().y;
+
+    if (x < xWanted)
+    {
+        m_dir = Right;
+        moveCharacter();
+    }
+    else if (x > xWanted)
+    {
+        m_dir = Left;
+        moveCharacter();
+    }
+    else
+    {
+        if (y < yWanted)
+        {
+            m_dir = Down;
+            moveCharacter();
+        }
+        else if (y > yWanted)
+        {
+            m_dir = Up;
+            moveCharacter();
+        }
+    }
+
+    return (x == xWanted && y == yWanted);
 }
 
 void Character::moveCharacter()
@@ -173,7 +206,7 @@ void Character::moveCharacter()
             m_rect.left = 0;
             m_rect.width = 32;
             m_rect.height = 32;
-            m_rect.top = Down * 32;
+            m_rect.top = m_olddir * 32;
             m_sprite.setTextureRect(m_rect);
         break;
     }
@@ -182,6 +215,26 @@ void Character::moveCharacter()
 void Character::setPosition(int x, int y)
 {
     m_sprite.setPosition(x, y);
+}
+
+void Character::setDirection(Dir d)
+{
+    if(d != Default)
+    {
+        if(m_dir != Default)
+        {
+            m_olddir = m_dir;
+        }
+        m_dir = d;
+    }
+    else
+    {
+        if(m_dir != Default)
+        {
+            m_olddir = m_dir;
+        }
+        m_dir = d;
+    }
 }
 
 void Character::draw(sf::RenderTarget& t, sf::RenderStates s) const
