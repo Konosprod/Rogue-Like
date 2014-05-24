@@ -65,8 +65,7 @@ void Interpreter::interpretCommand(string command)
             int x = atoi(words[3].c_str());
             int y = atoi(words[4].c_str());
 
-            m_characters[charName] = new Character(fileName);
-            m_characters[charName]->setEnvironment(m_gameEnvironment);
+            m_characters[charName] = new Character(m_gameEnvironment, fileName);
             m_characters[charName]->setPosition(x, y);
         }
         break;
