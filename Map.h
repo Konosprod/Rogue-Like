@@ -1,13 +1,13 @@
 #ifndef MAP_H
 #define MAP_H
 
-#include <vector>
 #include <SFML/Graphics.hpp>
-#include <SFML/Audio.hpp>
 #include "Room.h"
+#include "Random.h"
 #include "Character.h"
+#include "Enemy.h"
 #include "MapRandomizer.h"
-#include "SoundManager.h"
+#include "GameEnvironment.h"
 
 enum Event{
     None,
@@ -18,19 +18,22 @@ enum Event{
 class Map : public sf::Drawable, public sf::Transformable
 {
     public:
-        Map(SoundManager* soundManager, std::string tileset, int floorMax);
+        Map(GameEnvironment* gameEnvironment, std::string tileset, int floorMax);
         virtual ~Map();
 
         void moveRoom(Dir d);
         void drawMapDebug();
         void updateZombie(Character& c);
+        void drawMiniMap();
 
         bool isValidMove(Character& c);
         bool isEngagingFight(Character& c);
-        bool isChangingTile(int x, int y);
-        bool isChangingFloor(int x, int y);
+        bool isChangingTile(Character& c);
+        bool isChangingFloor(Character& c);
+        bool isValidMoveZombie(Enemy& c);
 
         sf::Vector2i getTP(Dir d);
+        Room* getCurrentRoom();
         Point currentRoom();
 
         void openChest();
@@ -54,7 +57,7 @@ class Map : public sf::Drawable, public sf::Transformable
         Room*** m_rooms;
         Point m_currentPos;
         MapRandomizer m_randomizer;
-        SoundManager* m_soundManager;
+        GameEnvironment* m_gameEnvironment;
         bool m_done;
 
 

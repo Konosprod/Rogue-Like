@@ -19,17 +19,45 @@ Character::Character(std::string tileset)
 	m_state = Walk;
 }
 
+Character::Character(GameEnvironment* gameEnvironment, std::string tileset) : m_gameEnvironment(gameEnvironment)
+{
+    setTexture(tileset);
+    m_rect.width = 32;
+	m_rect.height = 32;
+	m_rect.left = 0;
+	m_rect.top = 0;
+
+	m_sprite.setTextureRect(m_rect);
+	m_sprite.setPosition(64, 64);
+
+	m_delay = sf::seconds(0.025f);
+	m_alternate = 0;
+	m_frame = 0;
+	m_dir = Down;
+	m_olddir = Down;
+	m_state = Walk;
+}
+
 Character::~Character()
 {
-    //dtor
+
+}
+
+void Character::setEnvironment(GameEnvironment* gameEnvironment)
+{
+    m_gameEnvironment = gameEnvironment;
 }
 
 void Character::setTexture(std::string filename)
 {
-    if(!m_texture.loadFromFile(filename))
-        std::cout<<"Error! Incorrect input"<<std::endl;
-
-    m_sprite.setTexture(m_texture);
+    if(m_gameEnvironment->textureManager->getTexture(filename) != NULL)
+    {
+        m_sprite.setTexture(*m_gameEnvironment->textureManager->getTexture(filename));
+    }
+    else
+    {
+        std::cout << "Unable to load : " << filename << std::endl;
+    }
 }
 
 sf::Vector2f Character::getPosition()

@@ -3,6 +3,9 @@
 #include "Character.h"
 #include "Interpreter.h"
 #include "SoundManager.h"
+#include "TextureManager.h"
+#include "GameEnvironment.h"
+#include "Enemy.h"
 
 enum GameState{
     Running,
@@ -10,6 +13,25 @@ enum GameState{
     Pause,
     Event
 };
+
+void threadFunc(Map* m)
+{
+    while(1)
+    {
+        if(!m->getCurrentRoom()->isEmpty())
+        {
+            Enemy* zomb = m->getCurrentRoom()->getRandomZombie();
+
+            if(m->isValidMoveZombie(*zomb))
+            {
+                zomb->moveCharacter();
+            }
+
+            sf::sleep(sf::milliseconds(100/(m->getCurrentRoom()->getNbZombie())));
+        }
+    }
+}
+
 
 int main()
 {
@@ -20,26 +42,41 @@ int main()
     sf::Time fadeDelay = sf::seconds(0.005f);
     bool done = true;
     sf::RectangleShape fade;
+    TextureManager textureManager;
     Character c("rc/images/test_perso.png");
-    sf::RenderWindow window(sf::VideoMode(1024, 768, sf::Style::Fullscreen), "Badass Lengendary Awesome Heroes : Squad Extrem Adventure 2", sf::Style::Close);
-    sf::View view(sf::FloatRect(0, 0, window.getSize().x, window.getSize().y));
-    view.setViewport(sf::FloatRect(0.25f, 0.25f, 1, 1));
-    window.setView(view);
-    sf::Texture pauseScreenTexture;
+    sf::Sprite menuBackground;
     sf::Sprite pauseScreen;
     GameState state = Running;
     GameState oldState = state;
+    GameEnvironment gameEnvironment;
+    sf::RenderWindow window(sf::VideoMode(910, 512, sf::Style::Fullscreen), "Badass Lengendary Awesome Heroes : Squad Extrem Adventure 2");
+    sf::View view(sf::FloatRect(0, 0, window.getSize().x, window.getSize().y));
 
-    fade.setSize(sf::Vector2f(view.getSize().x,view.getSize().y));
+    Random::Initialize();
 
-    pauseScreenTexture.loadFromFile("rc/images/paused.png");
-    pauseScreen.setTexture(pauseScreenTexture);
 
-    c.setWindow(&window);
-    Interpreter i(&window, &soundManager);
+    view.setViewport(sf::FloatRect(0, 0, 1, 1));
+    window.setView(view);
 
-    Map m(&soundManager, "rc/images/test.png", 2);
-    m.drawMapDebug();
+    gameEnvironment.window = &window;
+    gameEnvironment.soundManager = &soundManager;
+    gameEnvironment.textureManager = &textureManager;
+
+    Interpreter i(&gameEnvironment);
+
+    fade.setSize(sf::Vector2f(512,512));
+
+    pauseScreen.setTexture(*textureManager.getTexture("rc/images/paused.png"));
+    menuBackground.setTexture(*textureManager.getTexture("rc/images/blah.png"));
+    menuBackground.setPosition(512,0);
+
+    Map m(&gameEnvironment, "rc/images/test.png", 2);
+    //m.drawMapDebug();
+
+    sf::Thread moveZombie(&threadFunc, &m);
+    moveZombie.launch();
+
+
 
     window.setFramerateLimit(60);
 
@@ -53,14 +90,15 @@ int main()
             switch(event.type)
             {
                 case sf::Event::Closed:
+                    moveZombie.terminate();
                     window.close();
                 break;
 
                 case sf::Event::Resized:
                 {
-                    view.setSize(event.size.width, event.size.height);
+                    /*view.setSize(event.size.width, event.size.height);
                     view.setViewport(sf::FloatRect(0.25f, 0.25f, 1, 1));
-                    window.setView(view);
+                    window.setView(view);*/
                 }
                 break;
 
@@ -129,6 +167,7 @@ int main()
                         {
                             state = Running;
                             m.updateZombie(c);
+                            moveZombie.launch();
                         }
 
                         if(state == Event)
@@ -164,8 +203,10 @@ int main()
                     c.moveCharacter();
                     soundManager.playFootsteps();
                 }
-                else if(m.isEngagingFight(c))
+
+                if(m.isEngagingFight(c))
                 {
+                    moveZombie.terminate();
                     soundManager.stopFootsteps();
                     state = Fight;
                 }
@@ -184,8 +225,9 @@ int main()
                     soundManager.playFootsteps();
                 }
 
-                else if(m.isEngagingFight(c))
+                if(m.isEngagingFight(c))
                 {
+                    moveZombie.terminate();
                     soundManager.stopFootsteps();
                     state = Fight;
                 }
@@ -204,8 +246,10 @@ int main()
                     c.moveCharacter();
                     soundManager.playFootsteps();
                 }
-                else if(m.isEngagingFight(c))
+
+                if(m.isEngagingFight(c))
                 {
+                    moveZombie.terminate();
                     soundManager.stopFootsteps();
                     state = Fight;
                 }
@@ -224,8 +268,10 @@ int main()
                     c.moveCharacter();
                     soundManager.playFootsteps();
                 }
-                else if(m.isEngagingFight(c))
+
+                if(m.isEngagingFight(c))
                 {
+                    moveZombie.terminate();
                     soundManager.stopFootsteps();
                     state = Fight;
                 }
@@ -253,12 +299,14 @@ int main()
             alpha-=17;
             window.clear();
             window.draw(m);
+            window.draw(menuBackground);
             window.draw(c);
             window.draw(fade);
             window.display();
             if(alpha == 0)
             {
                 done = true;
+                //m.drawMiniMap();
             }
         }
 
@@ -267,6 +315,7 @@ int main()
         if(state == Running || state == Fight)
         {
             window.draw(m);
+            window.draw(menuBackground);
             window.draw(c);
         }
         if(state == Pause)
@@ -276,7 +325,7 @@ int main()
         if(state == Event)
         {
             window.draw(m);
-
+            window.draw(menuBackground);
             if(i.isEmpty())
             {
                 i.clear();

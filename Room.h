@@ -7,10 +7,14 @@
 #include <string>
 #include <SFML/Graphics.hpp>
 #include "Tile.h"
+#include "GameEnvironment.h"
+#include "Random.h"
 
 #define LAYER 3
 #define TILE_WIDTH 32
 #define TILE_HEIGHT 32
+
+class Enemy;
 
 enum Dir{Up = 0, Right = 1, Down = 2, Left = 3, Default = 4};
 
@@ -28,15 +32,26 @@ class Room : public sf::Drawable, public sf::Transformable
         void generateEventRoom();
         void generateEndRoom();
         void update();
-        void deleteZombie(int xmin, int ymin, int xmax, int ymax);
+        void deleteZombie(sf::FloatRect r);
+
+        bool wasFound() {return m_found;};
+        void setWasFound(bool b){m_found = b;};
 
         int getX() {return m_x;};
         int getY() {return m_y;};
+
+        void setEnvironment(GameEnvironment* gameEnvironment);
 
         void drawRoomDebug();
 
         Tile getTile(int x, int y);
         sf::Vector2i getTP(Dir d);
+
+        bool isZombie(sf::FloatRect r);
+        Enemy* getRandomZombie();
+        bool isEmpty(){return m_enemies.empty();};
+
+        int getNbZombie(){return ((m_enemies.size() > 0) ? m_enemies.size() : 1);};
 
     protected:
         void createGround();
@@ -61,10 +76,13 @@ class Room : public sf::Drawable, public sf::Transformable
         bool m_hasChest;
         bool m_isHeal;
         char*** m_tab;
-        bool m_seen;
+        int m_count;
+        bool m_found;
 
-        sf::Texture m_tileset;
+        GameEnvironment* m_gameEnvironment;
+        std::string m_filename;
         sf::VertexArray m_vertices;
+        std::map<int, Enemy*> m_enemies;
         Tile*** m_tiles;
 
         void loadTileset();

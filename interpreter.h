@@ -11,6 +11,7 @@
 #include "Dialog.h"
 #include "dialogParameter.h"
 #include "SoundManager.h"
+#include "GameEnvironment.h"
 
 #define CHARACTER 1
 #define MOVE_CHARACTER 2
@@ -24,7 +25,7 @@
 class Interpreter
 {
     public:
-        Interpreter(sf::RenderWindow* w, SoundManager* s);
+        Interpreter(GameEnvironment* gameEnvironment);
         ~Interpreter();
         void interpretCommand(std::string command);
         void update ();
@@ -42,8 +43,7 @@ class Interpreter
         bool firstDialog;
         int getCommandNumber (std::string firstWord);
         bool getState (std::string state);
-        sf::RenderWindow* m_window;
-        SoundManager* m_soundManager;
+        GameEnvironment* m_gameEnvironment;
         std::vector<std::string> m_commands;
         Parser m_p;
 };

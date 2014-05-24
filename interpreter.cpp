@@ -2,7 +2,7 @@
 
 using namespace std;
 
-Interpreter::Interpreter(sf::RenderWindow * w, SoundManager* s) : m_window(w), m_soundManager(s)
+Interpreter::Interpreter(GameEnvironment* gameEnvironment) : m_gameEnvironment(gameEnvironment)
 {
     m_dialogParameter.font = "rc/font/arial.ttf";
     m_dialogParameter.background = "rc/images/tex.png";
@@ -66,7 +66,7 @@ void Interpreter::interpretCommand(string command)
             int y = atoi(words[4].c_str());
 
             m_characters[charName] = new Character(fileName);
-            m_characters[charName]->setWindow(m_window);
+            m_characters[charName]->setEnvironment(m_gameEnvironment);
             m_characters[charName]->setPosition(x, y);
         }
         break;
@@ -74,9 +74,9 @@ void Interpreter::interpretCommand(string command)
         case MUSIC_PLAY:
         {
             string musicName = words[1];
-            m_soundManager->stop();
-            m_soundManager->loadMusic(musicName, 1);
-            m_soundManager->play();
+            m_gameEnvironment->soundManager->stop();
+            m_gameEnvironment->soundManager->loadMusic(musicName, 1);
+            m_gameEnvironment->soundManager->play();
         }
         break;
 
@@ -113,7 +113,7 @@ void Interpreter::update ()
     std::map<std::string, Character*>::iterator itr;
     for(itr = m_characters.begin(); itr != m_characters.end(); ++itr)
     {
-            m_window->draw(*m_characters[itr->first]);
+            m_gameEnvironment->window->draw(*m_characters[itr->first]);
     }
 
     if (firstWord == "move_character")
@@ -134,7 +134,7 @@ void Interpreter::update ()
         {
             m_dialogWindow.setText(words[2]);
             m_dialogWindow.showNext();
-            m_window->draw(m_dialogWindow);
+            m_gameEnvironment->window->draw(m_dialogWindow);
         }
         else
         {
@@ -179,7 +179,7 @@ void Interpreter::nextDialog()
     if(!m_dialogWindow.isFinished())
     {
         m_dialogWindow.showNext();
-        m_window->draw(m_dialogWindow);
+        m_gameEnvironment->window->draw(m_dialogWindow);
     }
     else
     {
